@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herza Studio - Gerenciamiento de Obra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { min-height: 100vh; background: #d6d3cd; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Lato', sans-serif; padding: 40px 20px; }
+        .header { text-align: center; margin-bottom: 50px; }
+        .header h1 { font-family: 'Cormorant Garamond', serif; font-size: 3.5rem; font-weight: 300; color: #4a4a4a; letter-spacing: 2px; }
+        .header p { font-family: 'Lato', sans-serif; font-size: 1.1rem; font-weight: 300; color: #7a7a7a; letter-spacing: 3px; margin-top: 5px; }
+        .cards-container { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; max-width: 1200px; }
+        .card { background: #ffffff; border-radius: 12px; padding: 35px 30px; width: 250px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; text-decoration: none; display: block; }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 12px 35px rgba(0,0,0,0.15); }
+        .card-icon { width: 60px; height: 60px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .card-icon svg { width: 30px; height: 30px; }
+        .card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 500; color: #4a4a4a; margin-bottom: 8px; }
+        .card-subtitle { font-size: 0.8rem; color: #a0a0a0; font-weight: 300; letter-spacing: 1px; margin-bottom: 25px; }
+        .card-divider { width: 40px; height: 2px; margin: 0 auto 20px; border-radius: 1px; }
+        .card-description { font-size: 0.85rem; color: #8a8a8a; line-height: 1.6; font-weight: 300; }
+        .card-btn { display: inline-block; margin-top: 25px; padding: 12px 40px; border-radius: 6px; color: #fff; font-family: 'Lato', sans-serif; font-size: 0.85rem; font-weight: 400; letter-spacing: 1px; transition: opacity 0.3s ease; }
+        .card:hover .card-btn { opacity: 0.9; }
+        .card-presupuestos .card-icon { background: rgba(180,155,120,0.15); }
+        .card-presupuestos .card-divider { background: #b49b78; }
+        .card-presupuestos .card-btn { background: #b49b78; }
+        .card-presupuestos .card-icon svg { color: #b49b78; stroke: #b49b78; }
+        .card-track .card-icon { background: rgba(140,160,140,0.15); }
+        .card-track .card-divider { background: #8ca08c; }
+        .card-track .card-btn { background: #8ca08c; }
+        .card-track .card-icon svg { color: #8ca08c; stroke: #8ca08c; }
+        .card-cotizador .card-icon { background: rgba(160,140,155,0.15); }
+        .card-cotizador .card-divider { background: #a08c9b; }
+        .card-cotizador .card-btn { background: #a08c9b; }
+        .card-cotizador .card-icon svg { color: #a08c9b; stroke: #a08c9b; }
+        .card-inventario .card-icon { background: rgba(140,155,170,0.15); }
+        .card-inventario .card-divider { background: #8c9baa; }
+        .card-inventario .card-btn { background: #8c9baa; }
+        .card-inventario .card-icon svg { color: #8c9baa; stroke: #8c9baa; }
+        .footer { margin-top: 50px; text-align: center; color: #a0a0a0; font-size: 0.8rem; font-weight: 300; letter-spacing: 1px; }
+        @media (max-width: 768px) { .header h1 { font-size: 2.5rem; } .cards-container { flex-direction: column; align-items: center; } .card { width: 100%; max-width: 320px; } }
+    </style>
+</head>
+<body>
+    <div class="header"><h1>Herza Studio.</h1><p>Architecture Interiors</p></div>
+    <div class="cards-container">
+        <a href="https://project-7hban.vercel.app/" class="card card-presupuestos" target="_blank"><div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5M3.75 21V6.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75V21m7.5 0V10.5a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75V21m-15-5.25h1.5m-1.5 3h1.5m7.5-3h1.5m-1.5 3h1.5" /></svg></div><div class="card-title">Presupuestos</div><div class="card-subtitle">OBRA</div><div class="card-divider"></div><div class="card-description">Gestiona los presupuestos y costos de cada proyecto de obra.</div><div class="card-btn">Entrar</div></a>
+        <a href="https://control-obra-herza.vercel.app/" class="card card-track" target="_blank"><div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg></div><div class="card-title">Track Obra</div><div class="card-subtitle">SEGUIMIENTO</div><div class="card-divider"></div><div class="card-description">Monitorea el avance y control de las obras en curso.</div><div class="card-btn">Entrar</div></a>
+        <a href="https://cotizador-herza.vercel.app/" class="card card-cotizador" target="_blank"><div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg></div><div class="card-title">Presupuesto</div><div class="card-subtitle">CLIENTE</div><div class="card-divider"></div><div class="card-description">Genera y envia cotizaciones profesionales a tus clientes.</div><div class="card-btn">Entrar</div></a>
+        <a href="https://inventario-herza.vercel.app/" class="card card-inventario" target="_blank"><div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg></div><div class="card-title">Inventario</div><div class="card-subtitle">ALMACEN</div><div class="card-divider"></div><div class="card-description">Administra materiales, equipos y stock de tus proyectos.</div><div class="card-btn">Entrar</div></a>
+    </div>
+    <div class="footer">2026 Herza Studio. Todos los derechos reservados.</div>
+</body>
+</html>
