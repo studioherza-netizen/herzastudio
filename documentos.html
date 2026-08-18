@@ -330,7 +330,7 @@ function tipo(v){if(!v)return 'non';if(v.kind==='link')return 'lnk';var m=(v.mim
 function estado(d){
   var v=vact(d);
   if(!v)return {k:'non',t:'Falta'};
-  if(!d.vig)return {k:'perm',t:'Permanente'};
+  if(!d.vig)return (d.per==='Permanente')?{k:'perm',t:'Permanente'}:{k:'perm',t:'Sin fecha'};
   var dias=Math.round((new Date(d.vig+'T00:00:00')-hoy())/864e5);
   if(dias<0)return {k:'bad',t:'Vencido'};
   if(dias<=20)return {k:'warn',t:dias===0?'Vence hoy':'Vence en '+dias+' d'};
@@ -399,7 +399,12 @@ function guardarDocsNode(id,val){ return fbDb.ref(NODE+'/docs/'+id).set(val); }
 function render(){
   var q=(document.getElementById('q').value||'').toLowerCase();
   var arr=Object.keys(DOCS).map(function(k){var d=DOCS[k];d.id=k;return d;});
-  arr.sort(function(a,b){return (a.folder+String(a.order==null?99:a.order).padStart(3,'0')).localeCompare(b.folder+String(b.order==null?99:b.order).padStart(3,'0'));});
+  var ORD={}; CARPETAS.forEach(function(c,i){ORD[c.id]=i;});
+  arr.sort(function(a,b){
+    var fa=ORD[a.folder]==null?9:ORD[a.folder], fb=ORD[b.folder]==null?9:ORD[b.folder];
+    if(fa!==fb)return fa-fb;
+    return (a.order==null?99:a.order)-(b.order==null?99:b.order);
+  });
 
   document.getElementById('folders').innerHTML=CARPETAS.map(function(c){
     var ds=arr.filter(function(d){return d.folder===c.id;});
@@ -429,7 +434,7 @@ function render(){
     return '<tr class="row"><td><input type="checkbox" '+(sel[d.id]?'checked':'')+' onclick="marcar(\''+d.id+'\',this.checked)"></td>'+
     '<td><div class="docname"><div class="ftype t-'+tp+'">'+lbl+'</div><div><div class="dn">'+esc(d.name)+'</div><div class="dsub">'+esc(d.sub||'')+'</div></div></div></td>'+
     '<td class="hidem">'+(v?fecha((v.at||'').slice(0,10)):'<span style="color:#c0574a">sin archivo</span>')+'<div class="dsub">'+esc(d.per||'')+'</div></td>'+
-    '<td class="hidem">'+(d.vig?fecha(d.vig):'Permanente')+'</td>'+
+    '<td class="hidem">'+(d.vig?fecha(d.vig):(d.per==='Permanente'?'Permanente':'&mdash;'))+'</td>'+
     '<td><span class="badge '+e.k+'">'+e.t+'</span></td>'+
     '<td><div class="acts">'+
       '<div class="iconbtn '+(v?'':'off')+'" title="Ver" onclick="ver(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1.01 1.01 0 0 1 0-.64C3.42 7.51 7.36 4.5 12 4.5c4.64 0 8.57 3.01 9.96 7.18.04.21.04.43 0 .64C20.58 16.49 16.64 19.5 12 19.5c-4.64 0-8.57-3.01-9.96-7.18Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></div>'+
