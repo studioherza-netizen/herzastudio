@@ -87,6 +87,11 @@ tr.row:hover td{background:#fcfbf9}
 .iconbtn:hover svg{color:#fff;stroke:#fff}
 .iconbtn svg{width:14px;height:14px;color:#7a7a7a;stroke:#7a7a7a;pointer-events:none}
 .iconbtn.off{opacity:.35;pointer-events:none}
+.mini{padding:7px 13px;border-radius:7px;border:none;background:#6b7c3e;color:#fff;font-family:'Lato';font-size:.75rem;letter-spacing:.5px;cursor:pointer;white-space:nowrap}
+.mini:hover{opacity:.87}
+.mini.alt{background:#fff;color:#6b5e52;border:1px solid #e0ddd6}
+.lnkup{color:#c0574a;cursor:pointer;border-bottom:1px dashed rgba(192,87,74,.5)}
+.lnkup:hover{color:#6b7c3e;border-color:#6b7c3e}
 input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
 
 .selbar{position:fixed;left:50%;transform:translateX(-50%) translateY(160%);bottom:22px;background:#4a4a4a;color:#fff;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 34px rgba(0,0,0,.28);transition:transform .3s;z-index:40;font-size:.83rem;flex-wrap:wrap;justify-content:center}
@@ -425,7 +430,8 @@ function render(){
     if(q&&((d.name||'')+' '+(d.sub||'')).toLowerCase().indexOf(q)<0)return false;
     return true;
   });
-  document.getElementById('ptitle').textContent=filtro==='vence'?'Por actualizar':(carpeta?(CARPETAS.filter(function(c){return c.id===carpeta})[0].n):'Todos los documentos');
+  var tit=filtro==='vence'?'Por actualizar':(carpeta?(CARPETAS.filter(function(c){return c.id===carpeta})[0].n):'Todos los documentos');
+  document.getElementById('ptitle').innerHTML=esc(tit)+((carpeta||filtro)?' <span style="font-family:Lato;font-size:.72rem;letter-spacing:1px;color:#6b7c3e;cursor:pointer;border-bottom:1px solid rgba(107,124,62,.4)" onclick="verTodos()">VER TODOS</span>':'');
   document.getElementById('pcount').textContent=list.length+' de '+arr.length+' documentos';
 
   document.getElementById('tb').innerHTML=list.map(function(d){
@@ -433,14 +439,14 @@ function render(){
     var lbl={pdf:'PDF',img:'IMG',doc:'DOC',lnk:'LINK',non:'--'}[tp];
     return '<tr class="row"><td><input type="checkbox" '+(sel[d.id]?'checked':'')+' onclick="marcar(\''+d.id+'\',this.checked)"></td>'+
     '<td><div class="docname"><div class="ftype t-'+tp+'">'+lbl+'</div><div><div class="dn">'+esc(d.name)+'</div><div class="dsub">'+esc(d.sub||'')+'</div></div></div></td>'+
-    '<td class="hidem">'+(v?fecha((v.at||'').slice(0,10)):'<span style="color:#c0574a">sin archivo</span>')+'<div class="dsub">'+esc(d.per||'')+'</div></td>'+
+    '<td class="hidem">'+(v?fecha((v.at||'').slice(0,10)):(ESADMIN?'<span class="lnkup" onclick="subir(\''+d.id+'\')">sin archivo</span>':'<span style="color:#c0574a">sin archivo</span>'))+'<div class="dsub">'+esc(d.per||'')+'</div></td>'+
     '<td class="hidem">'+(d.vig?fecha(d.vig):(d.per==='Permanente'?'Permanente':'&mdash;'))+'</td>'+
     '<td><span class="badge '+e.k+'">'+e.t+'</span></td>'+
     '<td><div class="acts">'+
       '<div class="iconbtn '+(v?'':'off')+'" title="Ver" onclick="ver(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1.01 1.01 0 0 1 0-.64C3.42 7.51 7.36 4.5 12 4.5c4.64 0 8.57 3.01 9.96 7.18.04.21.04.43 0 .64C20.58 16.49 16.64 19.5 12 19.5c-4.64 0-8.57-3.01-9.96-7.18Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></div>'+
       '<div class="iconbtn '+(v?'':'off')+'" title="Descargar" onclick="bajar(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></div>'+
       '<div class="iconbtn" title="Historial" onclick="hist(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>'+
-      (ESADMIN?'<div class="iconbtn" title="Subir version" onclick="subir(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V3m0 0L7.5 7.5M12 3l4.5 4.5M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5"/></svg></div>'+
+      (ESADMIN?'<button class="mini" title="Subir archivo de este documento" onclick="subir(\''+d.id+'\')">'+(v?'Actualizar':'Subir')+'</button>'+
       '<div class="iconbtn" title="Editar" onclick="editar(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.86 4.49 1.65-1.65a1.87 1.87 0 1 1 2.65 2.65L8.9 17.74a4.5 4.5 0 0 1-1.9 1.13l-2.69.81.8-2.69a4.5 4.5 0 0 1 1.14-1.9L16.86 4.5Z"/></svg></div>':'')+
     '</div></td></tr>';
   }).join('')||'<tr><td colspan="6" style="text-align:center;padding:40px;color:#a0a0a0">Sin resultados</td></tr>';
@@ -450,6 +456,7 @@ function render(){
 }
 function abrirCarpeta(id){carpeta=(carpeta===id?null:id);filtro=null;render();}
 function filtrar(f){filtro=f;carpeta=null;render();}
+function verTodos(){carpeta=null;filtro=null;render();}
 function marcar(id,v){if(v)sel[id]=1;else delete sel[id];render();}
 function todos(cb){var arr=Object.keys(DOCS);if(cb.checked)arr.forEach(function(k){sel[k]=1;});else sel={};render();}
 function limpiar(){sel={};document.getElementById('chkall').checked=false;render();}
