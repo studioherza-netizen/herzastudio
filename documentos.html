@@ -267,7 +267,6 @@ input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
       <div class="field"><label>PRESET</label>
         <select id="p_preset" onchange="aplicarPreset()">
           <option value="alta">Alta de proveedor (cliente nuevo)</option>
-          <option value="contador">Contador / declaracion</option>
           <option value="lic">Licitacion</option>
           <option value="todo">Todo el archivo</option>
         </select></div>
@@ -294,7 +293,6 @@ var USER=null, ESADMIN=false, DOCS={}, carpeta=null, filtro=null, sel={}, EDIT=n
 var CARPETAS=[
  {id:'fis',n:'Fiscales de la empresa',c:'#b49b78',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.6c0-1.1-.9-2-2-2h-11c-1.1 0-2 .9-2 2v2.6M3.75 18.75h16.5M6.75 9.65V5.25c0-.83.67-1.5 1.5-1.5h7.5c.83 0 1.5.67 1.5 1.5v4.4"/>'},
  {id:'ide',n:'Identificaciones',c:'#7d9b95',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.12a7.5 7.5 0 0 1 15 0A17.93 17.93 0 0 1 12 21.75c-2.68 0-5.22-.58-7.5-1.63Z"/>'},
- {id:'men',n:'Mensuales / SAT - IMSS',c:'#c07a4a',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0V11.25A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>'},
  {id:'ban',n:'Bancarios y seguros',c:'#8c9baa',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9v10.5a1.5 1.5 0 0 0 1.5 1.5h16.5a1.5 1.5 0 0 0 1.5-1.5V9a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 9Zm3.75 8.25h4.5"/>'}
 ];
 
@@ -308,10 +306,6 @@ var SEED=[
  ['ide','INE - Daniella','Frente y reverso - socia','Anual'],
  ['ide','CURP - Karim Zaragoza','Impresion oficial RENAPO','Permanente'],
  ['ide','Comprobante de domicilio fiscal','No mayor a 3 meses','Mensual'],
- ['men','Declaracion mensual','ISR e IVA - acuse SAT','Mensual'],
- ['men','Pago de contribuciones SAT','Linea de captura pagada','Mensual'],
- ['men','IMSS - SUA y opinion positiva','Cedula de determinacion','Mensual'],
- ['men','Nomina timbrada','CFDI de nomina','Mensual'],
  ['ban','Caratula bancaria','Cuenta empresarial + CLABE','Anual'],
  ['ban','Poliza de Responsabilidad Civil','Cobertura obra','Anual'],
  ['ban','Carta de referencias comerciales','Proveedores - firmada','Anual']
@@ -319,7 +313,6 @@ var SEED=[
 
 var PRESETS={
  alta:{d:'Incluye lo que casi siempre piden para dar de alta a Herza como proveedor.',m:['Constancia de Situacion Fiscal','Opinion de Cumplimiento','Acta Constitutiva','Poder Notarial','INE - Karim','Caratula bancaria']},
- contador:{d:'Lo que suele pedir el contador para el cierre del mes.',m:['Constancia de Situacion Fiscal','Declaracion mensual','Pago de contribuciones','IMSS','Nomina timbrada']},
  lic:{d:'Paquete amplio para licitacion o concurso.',m:['Constancia de Situacion Fiscal','Opinion de Cumplimiento','Acta Constitutiva','Poder Notarial','INE','Caratula bancaria','Poliza','Carta de referencias']},
  todo:{d:'Todos los documentos que tengan archivo cargado.',m:null}
 };
