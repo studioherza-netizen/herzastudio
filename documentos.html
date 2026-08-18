@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herza Studio · Documentos</title>
+<link rel="icon" href="data:,">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#d6d3cd;font-family:'Lato',sans-serif;color:#4a4a4a;padding:28px 18px 70px;min-height:100vh}
+.wrap{max-width:1180px;margin:0 auto}
+a{color:inherit}
+
+/* login */
+#login{min-height:80vh;display:flex;align-items:center;justify-content:center}
+.lbox{background:#fff;border-radius:14px;padding:38px 34px;width:100%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,.12);text-align:center}
+.lbox h1{font-family:'Cormorant Garamond',serif;font-size:2.3rem;font-weight:300;letter-spacing:2px}
+.lbox p{font-size:.75rem;letter-spacing:3px;color:#a0a0a0;margin:4px 0 26px}
+.lbox input{width:100%;padding:12px 14px;border:1px solid #e0ddd6;border-radius:8px;margin-bottom:12px;font-family:'Lato';font-size:.9rem}
+.lbox input:focus{outline:none;border-color:#b49b78}
+.lerr{color:#c0574a;font-size:.78rem;min-height:18px;margin-bottom:8px}
+
+/* header */
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.brand h1{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:300;letter-spacing:2px;line-height:1}
+.brand p{font-size:.8rem;font-weight:300;letter-spacing:3px;color:#7a7a7a;margin-top:4px}
+.back{font-size:.78rem;letter-spacing:1px;color:#7a7a7a;text-decoration:none;display:inline-block;margin-bottom:10px}
+.back:hover{color:#6b7c3e}
+.user{display:flex;align-items:center;gap:10px;font-size:.8rem;color:#7a7a7a}
+.avatar{width:34px;height:34px;border-radius:50%;background:#6b7c3e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;letter-spacing:.5px}
+.out{cursor:pointer;font-size:.72rem;color:#b0b0b0;border:1px solid #e0ddd6;background:#fff;padding:6px 10px;border-radius:6px}
+
+.alert{background:#fff;border-left:4px solid #c07a4a;border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:18px;box-shadow:0 4px 18px rgba(0,0,0,.06);font-size:.87rem}
+.alert .sp{flex:1}
+.alert a{color:#6b7c3e;font-size:.8rem;letter-spacing:.5px;text-decoration:none;border-bottom:1px solid rgba(107,124,62,.4);cursor:pointer}
+
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.search{flex:1;min-width:220px;position:relative}
+.search input{width:100%;padding:12px 14px 12px 38px;border:1px solid #e0ddd6;border-radius:8px;background:#fff;font-family:'Lato';font-size:.88rem;color:#4a4a4a}
+.search input:focus{outline:none;border-color:#b49b78}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#a0a0a0}
+.btn{padding:11px 18px;border:none;border-radius:8px;background:#6b7c3e;color:#fff;font-family:'Lato';font-size:.82rem;letter-spacing:.7px;cursor:pointer;transition:opacity .25s}
+.btn:hover{opacity:.88}
+.btn.ghost{background:#fff;color:#6b5e52;border:1px solid #e0ddd6}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.secTitle{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:500;margin:26px 0 12px;letter-spacing:.5px}
+.folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.folder{background:#fff;border-radius:12px;padding:20px 18px;box-shadow:0 4px 18px rgba(0,0,0,.06);cursor:pointer;transition:transform .25s,box-shadow .25s;border:2px solid transparent}
+.folder:hover{transform:translateY(-5px);box-shadow:0 12px 28px rgba(0,0,0,.12)}
+.folder.active{border-color:#6b7c3e}
+.fico{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.fico svg{width:22px;height:22px}
+.fname{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;margin-bottom:3px}
+.fmeta{font-size:.73rem;color:#a0a0a0;letter-spacing:.5px}
+.fdots{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%}
+
+.panel{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.06);overflow:hidden;margin-top:14px}
+.phead{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #f0eeea}
+.phead h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600}
+.phead .sp{flex:1}
+.chipcount{font-size:.72rem;color:#a0a0a0;letter-spacing:.5px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:.68rem;letter-spacing:1.2px;color:#a0a0a0;font-weight:700;padding:12px 14px;background:#faf9f7;border-bottom:1px solid #f0eeea;white-space:nowrap}
+td{padding:13px 14px;border-bottom:1px solid #f5f3f0;font-size:.85rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.row:hover td{background:#fcfbf9}
+.docname{display:flex;align-items:center;gap:10px}
+.ftype{width:30px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:700;color:#fff;flex-shrink:0}
+.t-pdf{background:#c0574a}.t-img{background:#7d9b95}.t-doc{background:#8c9baa}.t-lnk{background:#b49b78}.t-non{background:#d8d4cd;color:#8a857d}
+.dn{line-height:1.25}
+.dsub{font-size:.7rem;color:#a0a0a0;margin-top:2px}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.68rem;letter-spacing:.6px;font-weight:700;white-space:nowrap}
+.ok{background:rgba(107,124,62,.13);color:#5b6b34}
+.warn{background:rgba(192,122,74,.15);color:#a3603a}
+.bad{background:rgba(192,87,74,.14);color:#a8443a}
+.perm{background:rgba(140,155,170,.18);color:#5d7288}
+.non{background:#f2efea;color:#a0a0a0}
+.acts{display:flex;gap:6px;justify-content:flex-end}
+.iconbtn{width:30px;height:30px;border-radius:7px;border:1px solid #e8e5e0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s}
+.iconbtn:hover{background:#6b7c3e;border-color:#6b7c3e}
+.iconbtn:hover svg{color:#fff;stroke:#fff}
+.iconbtn svg{width:14px;height:14px;color:#7a7a7a;stroke:#7a7a7a;pointer-events:none}
+.iconbtn.off{opacity:.35;pointer-events:none}
+input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
+
+.selbar{position:fixed;left:50%;transform:translateX(-50%) translateY(160%);bottom:22px;background:#4a4a4a;color:#fff;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 34px rgba(0,0,0,.28);transition:transform .3s;z-index:40;font-size:.83rem;flex-wrap:wrap;justify-content:center}
+.selbar.show{transform:translateX(-50%) translateY(0)}
+.selbar button{padding:8px 14px;border:none;border-radius:7px;background:#6b7c3e;color:#fff;font-family:'Lato';font-size:.78rem;cursor:pointer}
+.selbar button.g{background:rgba(255,255,255,.16)}
+
+.ov{position:fixed;inset:0;background:rgba(74,74,74,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:60}
+.ov.show{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:520px;max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.mhead{padding:20px 24px;border-bottom:1px solid #f0eeea;display:flex;align-items:center}
+.mhead h3{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;flex:1}
+.x{cursor:pointer;color:#a0a0a0;font-size:1.4rem;line-height:1}
+.mbody{padding:22px 24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.7rem;letter-spacing:1.1px;color:#a0a0a0;font-weight:700;margin-bottom:6px}
+.field input,.field select{width:100%;padding:11px 12px;border:1px solid #e0ddd6;border-radius:8px;font-family:'Lato';font-size:.87rem;color:#4a4a4a;background:#fff}
+.drop{border:2px dashed #ddd8cf;border-radius:10px;padding:24px;text-align:center;color:#a0a0a0;font-size:.83rem;background:#faf9f7;cursor:pointer}
+.drop b{color:#6b7c3e}
+.drop.on{border-color:#6b7c3e;background:#f4f6ee}
+.mfoot{padding:16px 24px;border-top:1px solid #f0eeea;display:flex;gap:10px;justify-content:flex-end}
+.hrow{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:.8rem;border-bottom:1px solid #f7f5f2}
+.hrow:last-child{border:none}
+.hrow .v{width:38px;font-size:.7rem;color:#a0a0a0}
+.hrow .sp{flex:1}
+.hrow a{color:#6b7c3e;text-decoration:none;font-size:.75rem;cursor:pointer}
+.note{background:#faf9f7;border-radius:8px;padding:12px 14px;font-size:.78rem;color:#7a7a7a;line-height:1.5}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tab{padding:8px 14px;border-radius:8px;border:1px solid #e0ddd6;background:#fff;font-size:.78rem;cursor:pointer;color:#7a7a7a}
+.tab.on{background:#6b7c3e;color:#fff;border-color:#6b7c3e}
+.footer{text-align:center;color:#a0a0a0;font-size:.75rem;font-weight:300;letter-spacing:1px;margin-top:40px}
+.toast{position:fixed;bottom:24px;right:24px;background:#4a4a4a;color:#fff;padding:12px 18px;border-radius:10px;font-size:.83rem;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transform:translateY(16px);transition:.3s;z-index:80;max-width:320px}
+.toast.show{opacity:1;transform:translateY(0)}
+.hide{display:none!important}
+@media(max-width:760px){.hidem{display:none}.brand h1{font-size:2rem}td,th{padding:11px 9px}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="lbox">
+    <h1>Documentos.</h1>
+    <p>ARCHIVO DIGITAL HERZA</p>
+    <input id="lu" placeholder="Usuario" autocomplete="username">
+    <input id="lp" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <div class="lerr" id="lerr"></div>
+    <button class="btn" style="width:100%" id="lbtn">Entrar</button>
+  </div>
+</div>
+
+<div class="wrap hide" id="app">
+  <div class="top">
+    <div>
+      <a class="back" href="https://herzastudio.vercel.app/">&larr; VOLVER AL PORTAL</a>
+      <div class="brand"><h1>Documentos.</h1><p>ARCHIVO DIGITAL HERZA</p></div>
+    </div>
+    <div class="user">
+      <div class="avatar" id="uav">HZ</div>
+      <div><span id="uname">usuario</span><br><span style="font-size:.7rem;color:#b0b0b0" id="urol">Consulta</span></div>
+      <button class="out" onclick="salir()">Salir</button>
+    </div>
+  </div>
+
+  <div class="alert hide" id="alert">
+    <span style="font-size:1.1rem">&#9888;&#65039;</span>
+    <div class="sp" id="alerttxt"></div>
+    <a onclick="filtrar('vence')">Ver pendientes</a>
+  </div>
+
+  <div class="bar">
+    <div class="search">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.2-5.2m2.2-5.3a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
+      <input id="q" placeholder="Buscar documento... (constancia, INE, opinion)" oninput="render()">
+    </div>
+    <button class="btn ghost" onclick="abrirPaquete()">Armar paquete</button>
+    <button class="btn adminonly" onclick="nuevoDoc()">+ Nuevo documento</button>
+  </div>
+
+  <div class="secTitle">Carpetas</div>
+  <div class="folders" id="folders"></div>
+
+  <div class="panel">
+    <div class="phead">
+      <h3 id="ptitle">Todos los documentos</h3>
+      <span class="sp"></span>
+      <span class="chipcount" id="pcount"></span>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:34px"><input type="checkbox" id="chkall" onclick="todos(this)"></th>
+        <th>DOCUMENTO</th>
+        <th class="hidem">ACTUALIZADO</th>
+        <th class="hidem">VIGENCIA</th>
+        <th>ESTADO</th>
+        <th style="text-align:right">ACCIONES</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+
+  <div class="footer">&copy; 2026 Herza Studio &middot; Archivo digital &middot; <span id="fstat">conectado</span></div>
+</div>
+
+<div class="selbar" id="selbar">
+  <span id="selcount">0 seleccionados</span>
+  <button onclick="descargarZip()">Descargar ZIP</button>
+  <button class="g" onclick="limpiar()">Cancelar</button>
+</div>
+
+<!-- MODAL: documento (alta / edicion) -->
+<div class="ov" id="ov-doc" onclick="if(event.target===this)cerrar()">
+  <div class="modal">
+    <div class="mhead"><h3 id="dtit">Nuevo documento</h3><span class="x" onclick="cerrar()">&times;</span></div>
+    <div class="mbody">
+      <div class="field"><label>CARPETA</label><select id="d_folder"></select></div>
+      <div class="field"><label>NOMBRE DEL DOCUMENTO</label><input id="d_name" placeholder="Constancia de Situacion Fiscal"></div>
+      <div class="field"><label>REFERENCIA / NOTA</label><input id="d_sub" placeholder="RFC, folio, titular..."></div>
+      <div class="field" style="display:flex;gap:12px">
+        <div style="flex:1"><label>VIGENCIA HASTA</label><input type="date" id="d_vig"></div>
+        <div style="flex:1"><label>PERIODICIDAD</label><select id="d_per"><option>Mensual</option><option>Bimestral</option><option>Anual</option><option>Permanente</option></select></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn ghost" id="d_del" onclick="borrarDoc()" style="margin-right:auto;color:#c0574a">Eliminar</button>
+      <button class="btn ghost" onclick="cerrar()">Cancelar</button>
+      <button class="btn" onclick="guardarDoc()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: subir version -->
+<div class="ov" id="ov-up" onclick="if(event.target===this)cerrar()">
+  <div class="modal">
+    <div class="mhead"><h3 id="utit">Subir version</h3><span class="x" onclick="cerrar()">&times;</span></div>
+    <div class="mbody">
+      <div class="tabs">
+        <div class="tab on" id="tab-file" onclick="modoUp('file')">Subir archivo</div>
+        <div class="tab" id="tab-link" onclick="modoUp('link')">Pegar enlace</div>
+      </div>
+      <div id="up-file">
+        <div class="drop" id="drop" onclick="document.getElementById('fin').click()">
+          Arrastra el PDF o imagen aqui<br><b>o haz clic para elegir</b><br>
+          <span style="font-size:.72rem">PDF, JPG, PNG, Word, Excel &middot; max. 4 MB</span>
+        </div>
+        <input type="file" id="fin" class="hide" onchange="elegido(this)">
+        <div id="fsel" style="margin-top:10px;font-size:.83rem;color:#6b7c3e"></div>
+      </div>
+      <div id="up-link" class="hide">
+        <div class="field"><label>ENLACE (Drive, Dropbox, etc.)</label><input id="u_url" placeholder="https://drive.google.com/..."></div>
+      </div>
+      <div class="field" style="margin-top:16px"><label>ETIQUETA DE ESTA VERSION</label><input id="u_lbl" placeholder="Agosto 2026"></div>
+      <div class="field"><label>ACTUALIZAR VIGENCIA HASTA</label><input type="date" id="u_vig"></div>
+      <div class="note">La version anterior no se borra: queda en el historial con su fecha, para que siempre puedas recuperar la constancia de un mes pasado.</div>
+    </div>
+    <div class="mfoot"><button class="btn ghost" onclick="cerrar()">Cancelar</button><button class="btn" id="u_btn" onclick="guardarVersion()">Guardar version</button></div>
+  </div>
+</div>
+
+<!-- MODAL: historial -->
+<div class="ov" id="ov-hist" onclick="if(event.target===this)cerrar()">
+  <div class="modal">
+    <div class="mhead"><h3 id="hname">Historial</h3><span class="x" onclick="cerrar()">&times;</span></div>
+    <div class="mbody"><div id="hlist"></div></div>
+    <div class="mfoot"><button class="btn ghost" onclick="cerrar()">Cerrar</button><button class="btn adminonly" onclick="cerrar();subir(HDOC)">Subir version nueva</button></div>
+  </div>
+</div>
+
+<!-- MODAL: paquete -->
+<div class="ov" id="ov-paq" onclick="if(event.target===this)cerrar()">
+  <div class="modal">
+    <div class="mhead"><h3>Armar paquete</h3><span class="x" onclick="cerrar()">&times;</span></div>
+    <div class="mbody">
+      <div class="field"><label>PRESET</label>
+        <select id="p_preset" onchange="aplicarPreset()">
+          <option value="alta">Alta de proveedor (cliente nuevo)</option>
+          <option value="contador">Contador / declaracion</option>
+          <option value="lic">Licitacion</option>
+          <option value="todo">Todo el archivo</option>
+        </select></div>
+      <div class="note" id="p_desc"></div>
+      <div id="p_list" style="margin-top:14px;max-height:230px;overflow:auto"></div>
+    </div>
+    <div class="mfoot"><button class="btn ghost" onclick="cerrar()">Cancelar</button><button class="btn" onclick="descargarZip(true)">Descargar ZIP</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ Firebase ============ */
+var FB={apiKey:"AIzaSyDNq4ikdwNZakZCrRy8qHlsXnDZrielut8",authDomain:"herza-studio-apps.firebaseapp.com",databaseURL:"https://herza-studio-apps-default-rtdb.firebaseio.com",projectId:"herza-studio-apps",storageBucket:"herza-studio-apps.firebasestorage.app",messagingSenderId:"886450555162",appId:"1:886450555162:web:e90be88e5d2b1cbdd244a3"};
+var fbDb=null;
+try{ firebase.initializeApp(FB); fbDb=firebase.database(); }catch(e){ console.error('firebase init',e); }
+var REST=FB.databaseURL;
+var NODE='documentosHerza';
+
+/* ============ Estado ============ */
+var USER=null, ESADMIN=false, DOCS={}, carpeta=null, filtro=null, sel={}, EDIT=null, HDOC=null, MODO='file', ARCH=null;
+
+var CARPETAS=[
+ {id:'fis',n:'Fiscales de la empresa',c:'#b49b78',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.6c0-1.1-.9-2-2-2h-11c-1.1 0-2 .9-2 2v2.6M3.75 18.75h16.5M6.75 9.65V5.25c0-.83.67-1.5 1.5-1.5h7.5c.83 0 1.5.67 1.5 1.5v4.4"/>'},
+ {id:'ide',n:'Identificaciones',c:'#7d9b95',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.12a7.5 7.5 0 0 1 15 0A17.93 17.93 0 0 1 12 21.75c-2.68 0-5.22-.58-7.5-1.63Z"/>'},
+ {id:'men',n:'Mensuales / SAT - IMSS',c:'#c07a4a',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0V11.25A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>'},
+ {id:'ban',n:'Bancarios y seguros',c:'#8c9baa',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9v10.5a1.5 1.5 0 0 0 1.5 1.5h16.5a1.5 1.5 0 0 0 1.5-1.5V9a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 9Zm3.75 8.25h4.5"/>'}
+];
+
+var SEED=[
+ ['fis','Constancia de Situacion Fiscal','HERZA STUDIO - RFC','Mensual'],
+ ['fis','Opinion de Cumplimiento (32-D)','Sentido positivo - SAT','Mensual'],
+ ['fis','Acta Constitutiva','Escritura publica','Permanente'],
+ ['fis','Poder Notarial - Representante Legal','Cristian Carim Zaragoza Barajas','Permanente'],
+ ['fis','Cedula de Identificacion Fiscal','Con codigo QR del SAT','Permanente'],
+ ['ide','INE - Karim Zaragoza','Frente y reverso - representante legal','Anual'],
+ ['ide','INE - Daniella','Frente y reverso - socia','Anual'],
+ ['ide','CURP - Karim Zaragoza','Impresion oficial RENAPO','Permanente'],
+ ['ide','Comprobante de domicilio fiscal','No mayor a 3 meses','Mensual'],
+ ['men','Declaracion mensual','ISR e IVA - acuse SAT','Mensual'],
+ ['men','Pago de contribuciones SAT','Linea de captura pagada','Mensual'],
+ ['men','IMSS - SUA y opinion positiva','Cedula de determinacion','Mensual'],
+ ['men','Nomina timbrada','CFDI de nomina','Mensual'],
+ ['ban','Caratula bancaria','Cuenta empresarial + CLABE','Anual'],
+ ['ban','Poliza de Responsabilidad Civil','Cobertura obra','Anual'],
+ ['ban','Carta de referencias comerciales','Proveedores - firmada','Anual']
+];
+
+var PRESETS={
+ alta:{d:'Incluye lo que casi siempre piden para dar de alta a Herza como proveedor.',m:['Constancia de Situacion Fiscal','Opinion de Cumplimiento','Acta Constitutiva','Poder Notarial','INE - Karim','Caratula bancaria']},
+ contador:{d:'Lo que suele pedir el contador para el cierre del mes.',m:['Constancia de Situacion Fiscal','Declaracion mensual','Pago de contribuciones','IMSS','Nomina timbrada']},
+ lic:{d:'Paquete amplio para licitacion o concurso.',m:['Constancia de Situacion Fiscal','Opinion de Cumplimiento','Acta Constitutiva','Poder Notarial','INE','Caratula bancaria','Poliza','Carta de referencias']},
+ todo:{d:'Todos los documentos que tengan archivo cargado.',m:null}
+};
+
+/* ============ Utilidades ============ */
+function uid(){return 'd'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function toast(t){var e=document.getElementById('toast');e.textContent=t;e.className='toast show';setTimeout(function(){e.className='toast';},2600);}
+function hoy(){var d=new Date();d.setHours(0,0,0,0);return d;}
+function fecha(iso){if(!iso)return '';var p=iso.split('-');var M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return p[2]+' '+M[+p[1]-1]+' '+p[0];}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function vact(d){if(!d.versions)return null;var ks=Object.keys(d.versions);if(!ks.length)return null;ks.sort(function(a,b){return (d.versions[b].at||'').localeCompare(d.versions[a].at||'');});return d.versions[ks[0]];}
+function tipo(v){if(!v)return 'non';if(v.kind==='link')return 'lnk';var m=(v.mime||'')+' '+(v.fname||'');if(/pdf/i.test(m))return 'pdf';if(/image|jpg|jpeg|png|heic/i.test(m))return 'img';return 'doc';}
+function estado(d){
+  var v=vact(d);
+  if(!v)return {k:'non',t:'Falta'};
+  if(!d.vig)return {k:'perm',t:'Permanente'};
+  var dias=Math.round((new Date(d.vig+'T00:00:00')-hoy())/864e5);
+  if(dias<0)return {k:'bad',t:'Vencido'};
+  if(dias<=20)return {k:'warn',t:dias===0?'Vence hoy':'Vence en '+dias+' d'};
+  return {k:'ok',t:'Vigente'};
+}
+function colorEstado(k){return k==='ok'?'#6b7c3e':k==='warn'?'#c07a4a':k==='bad'?'#c0574a':k==='non'?'#d8d4cd':'#c9c5bd';}
+
+/* ============ Login ============ */
+function norm(s){return String(s||'').trim().toLowerCase();}
+document.getElementById('lbtn').onclick=entrar;
+document.getElementById('lp').addEventListener('keydown',function(e){if(e.key==='Enter')entrar();});
+document.getElementById('lu').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('lp').focus();});
+
+function entrar(){
+  var u=norm(document.getElementById('lu').value), p=String(document.getElementById('lp').value||'').trim();
+  var err=document.getElementById('lerr'); err.textContent='';
+  if(!u||!p){err.textContent='Escribe usuario y contrasena';return;}
+  if(u==='admin'&&p==='579312'){ok({usuario:'admin',nombre:'Administrador'},true);return;}
+  err.textContent='Verificando...';
+  fetch(REST+'/herzaUsers/users.json').then(function(r){return r.json();}).then(function(us){
+    var found=null;
+    Object.keys(us||{}).forEach(function(k){var x=us[k];if(x&&norm(x.usuario)===u&&String(x.password)===p)found=x;});
+    if(!found){err.textContent='Usuario o contrasena incorrectos';return;}
+    if(found.activo===false){err.textContent='Usuario desactivado';return;}
+    if(norm(found.usuario)==='spobra'||(found.apps&&found.apps.documentos===false)){err.textContent='Este usuario no tiene acceso a Documentos';return;}
+    var adm = found.panel===true || (found.apps&&found.apps.documentos==='admin') || (found.apps&&found.apps.presupuestos==='admin') || norm(found.usuario)==='karim';
+    ok(found,adm);
+  }).catch(function(){
+    if((u==='karim'||u==='admin')&&p==='herza2026'){ok({usuario:u,nombre:u},true);return;}
+    err.textContent='Sin conexion. Intenta de nuevo.';
+  });
+}
+function ok(u,adm){
+  USER=u; ESADMIN=!!adm;
+  try{sessionStorage.setItem('hzdocs_u',JSON.stringify({u:u,a:adm}));}catch(e){}
+  document.getElementById('login').className='hide';
+  document.getElementById('app').className='wrap';
+  var nom=u.nombre||u.usuario;
+  document.getElementById('uname').textContent=u.usuario;
+  document.getElementById('urol').textContent=ESADMIN?'Administrador':'Consulta';
+  document.getElementById('uav').textContent=String(nom).slice(0,2).toUpperCase();
+  document.querySelectorAll('.adminonly').forEach(function(e){if(!ESADMIN)e.classList.add('hide');});
+  cargar();
+}
+function salir(){try{sessionStorage.removeItem('hzdocs_u');}catch(e){}location.reload();}
+try{var s=JSON.parse(sessionStorage.getItem('hzdocs_u')||'null');if(s&&s.u){ok(s.u,s.a);}}catch(e){}
+
+/* ============ Datos ============ */
+function cargar(){
+  if(!fbDb){document.getElementById('fstat').textContent='sin conexion';return;}
+  fbDb.ref(NODE+'/docs').on('value',function(sn){
+    var v=sn.val();
+    if(!v||!Object.keys(v).length){ if(ESADMIN) sembrar(); else {DOCS={};render();} return; }
+    DOCS=v; render();
+    document.getElementById('fstat').textContent='sincronizado';
+  },function(e){console.error(e);document.getElementById('fstat').textContent='error de lectura';});
+}
+function sembrar(){
+  var o={};
+  SEED.forEach(function(s,i){var id='seed'+i;o[id]={id:id,folder:s[0],name:s[1],sub:s[2],per:s[3],vig:'',order:i,versions:null};});
+  fbDb.ref(NODE+'/docs').set(o).then(function(){toast('Archivo inicial creado - ya puedes subir tus PDF');});
+}
+function guardarDocsNode(id,val){ return fbDb.ref(NODE+'/docs/'+id).set(val); }
+
+/* ============ Render ============ */
+function render(){
+  var q=(document.getElementById('q').value||'').toLowerCase();
+  var arr=Object.keys(DOCS).map(function(k){var d=DOCS[k];d.id=k;return d;});
+  arr.sort(function(a,b){return (a.folder+String(a.order==null?99:a.order).padStart(3,'0')).localeCompare(b.folder+String(b.order==null?99:b.order).padStart(3,'0'));});
+
+  document.getElementById('folders').innerHTML=CARPETAS.map(function(c){
+    var ds=arr.filter(function(d){return d.folder===c.id;});
+    var dots=ds.map(function(d){return '<span class="dot" style="background:'+colorEstado(estado(d).k)+'"></span>';}).join('');
+    return '<div class="folder '+(carpeta===c.id?'active':'')+'" onclick="abrirCarpeta(\''+c.id+'\')">'+
+      '<div class="fico" style="background:'+c.c+'26"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="'+c.c+'">'+c.ico+'</svg></div>'+
+      '<div class="fname">'+c.n+'</div><div class="fmeta">'+ds.length+' documentos</div><div class="fdots">'+dots+'</div></div>';
+  }).join('');
+
+  var pend=arr.filter(function(d){var k=estado(d).k;return k==='warn'||k==='bad';});
+  var al=document.getElementById('alert');
+  if(pend.length){al.className='alert';document.getElementById('alerttxt').innerHTML='<b>'+pend.length+' documento'+(pend.length>1?'s':'')+' por actualizar</b> - '+esc(pend.slice(0,3).map(function(d){return d.name;}).join(', '))+(pend.length>3?'...':'');}
+  else al.className='alert hide';
+
+  var list=arr.filter(function(d){
+    if(carpeta&&d.folder!==carpeta)return false;
+    if(filtro==='vence'){var k=estado(d).k;if(k!=='warn'&&k!=='bad')return false;}
+    if(q&&((d.name||'')+' '+(d.sub||'')).toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+  document.getElementById('ptitle').textContent=filtro==='vence'?'Por actualizar':(carpeta?(CARPETAS.filter(function(c){return c.id===carpeta})[0].n):'Todos los documentos');
+  document.getElementById('pcount').textContent=list.length+' de '+arr.length+' documentos';
+
+  document.getElementById('tb').innerHTML=list.map(function(d){
+    var e=estado(d),v=vact(d),tp=tipo(v);
+    var lbl={pdf:'PDF',img:'IMG',doc:'DOC',lnk:'LINK',non:'--'}[tp];
+    return '<tr class="row"><td><input type="checkbox" '+(sel[d.id]?'checked':'')+' onclick="marcar(\''+d.id+'\',this.checked)"></td>'+
+    '<td><div class="docname"><div class="ftype t-'+tp+'">'+lbl+'</div><div><div class="dn">'+esc(d.name)+'</div><div class="dsub">'+esc(d.sub||'')+'</div></div></div></td>'+
+    '<td class="hidem">'+(v?fecha((v.at||'').slice(0,10)):'<span style="color:#c0574a">sin archivo</span>')+'<div class="dsub">'+esc(d.per||'')+'</div></td>'+
+    '<td class="hidem">'+(d.vig?fecha(d.vig):'Permanente')+'</td>'+
+    '<td><span class="badge '+e.k+'">'+e.t+'</span></td>'+
+    '<td><div class="acts">'+
+      '<div class="iconbtn '+(v?'':'off')+'" title="Ver" onclick="ver(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1.01 1.01 0 0 1 0-.64C3.42 7.51 7.36 4.5 12 4.5c4.64 0 8.57 3.01 9.96 7.18.04.21.04.43 0 .64C20.58 16.49 16.64 19.5 12 19.5c-4.64 0-8.57-3.01-9.96-7.18Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></div>'+
+      '<div class="iconbtn '+(v?'':'off')+'" title="Descargar" onclick="bajar(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></div>'+
+      '<div class="iconbtn" title="Historial" onclick="hist(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>'+
+      (ESADMIN?'<div class="iconbtn" title="Subir version" onclick="subir(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V3m0 0L7.5 7.5M12 3l4.5 4.5M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5"/></svg></div>'+
+      '<div class="iconbtn" title="Editar" onclick="editar(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.86 4.49 1.65-1.65a1.87 1.87 0 1 1 2.65 2.65L8.9 17.74a4.5 4.5 0 0 1-1.9 1.13l-2.69.81.8-2.69a4.5 4.5 0 0 1 1.14-1.9L16.86 4.5Z"/></svg></div>':'')+
+    '</div></td></tr>';
+  }).join('')||'<tr><td colspan="6" style="text-align:center;padding:40px;color:#a0a0a0">Sin resultados</td></tr>';
+  var n=Object.keys(sel).length;
+  document.getElementById('selcount').textContent=n+' seleccionado'+(n===1?'':'s');
+  document.getElementById('selbar').className='selbar'+(n?' show':'');
+}
+function abrirCarpeta(id){carpeta=(carpeta===id?null:id);filtro=null;render();}
+function filtrar(f){filtro=f;carpeta=null;render();}
+function marcar(id,v){if(v)sel[id]=1;else delete sel[id];render();}
+function todos(cb){var arr=Object.keys(DOCS);if(cb.checked)arr.forEach(function(k){sel[k]=1;});else sel={};render();}
+function limpiar(){sel={};document.getElementById('chkall').checked=false;render();}
+
+/* ============ Modales ============ */
+function abrir(id){document.getElementById('ov-'+id).classList.add('show');}
+function cerrar(){['doc','up','hist','paq'].forEach(function(i){document.getElementById('ov-'+i).classList.remove('show');});}
+
+function fillFolders(sel_){var s=document.getElementById('d_folder');s.innerHTML=CARPETAS.map(function(c){return '<option value="'+c.id+'"'+(c.id===sel_?' selected':'')+'>'+c.n+'</option>';}).join('');}
+function nuevoDoc(){EDIT=null;document.getElementById('dtit').textContent='Nuevo documento';fillFolders(carpeta||'fis');
+ document.getElementById('d_name').value='';document.getElementById('d_sub').value='';document.getElementById('d_vig').value='';document.getElementById('d_per').value='Mensual';
+ document.getElementById('d_del').style.display='none';abrir('doc');}
+function editar(id){EDIT=id;var d=DOCS[id];document.getElementById('dtit').textContent='Editar documento';fillFolders(d.folder);
+ document.getElementById('d_name').value=d.name||'';document.getElementById('d_sub').value=d.sub||'';document.getElementById('d_vig').value=d.vig||'';document.getElementById('d_per').value=d.per||'Mensual';
+ document.getElementById('d_del').style.display='';abrir('doc');}
+function guardarDoc(){
+ var name=document.getElementById('d_name').value.trim();
+ if(!name){toast('Ponle nombre al documento');return;}
+ var id=EDIT||uid();
+ var base=EDIT?DOCS[EDIT]:{order:99,versions:null};
+ var obj={id:id,folder:document.getElementById('d_folder').value,name:name,sub:document.getElementById('d_sub').value.trim(),
+   vig:document.getElementById('d_vig').value,per:document.getElementById('d_per').value,order:base.order==null?99:base.order,versions:base.versions||null};
+ guardarDocsNode(id,obj).then(function(){cerrar();toast('Guardado');}).catch(function(){toast('No se pudo guardar');});
+}
+function borrarDoc(){
+ if(!EDIT)return;
+ if(!confirm('Eliminar "'+DOCS[EDIT].name+'" y todas sus versiones?'))return;
+ var id=EDIT;
+ fbDb.ref(NODE+'/docs/'+id).remove().then(function(){fbDb.ref(NODE+'/blobs/'+id).remove();cerrar();toast('Eliminado');});
+}
+
+/* ---- subir version ---- */
+function subir(id){EDIT=id;ARCH=null;MODO='file';modoUp('file');
+ document.getElementById('utit').textContent=DOCS[id].name;
+ document.getElementById('fsel').textContent='';document.getElementById('fin').value='';
+ document.getElementById('u_url').value='';
+ var M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];var n=new Date();
+ document.getElementById('u_lbl').value=M[n.getMonth()].charAt(0).toUpperCase()+M[n.getMonth()].slice(1)+' '+n.getFullYear();
+ document.getElementById('u_vig').value=DOCS[id].vig||'';
+ abrir('up');}
+function modoUp(m){MODO=m;
+ document.getElementById('tab-file').className='tab'+(m==='file'?' on':'');
+ document.getElementById('tab-link').className='tab'+(m==='link'?' on':'');
+ document.getElementById('up-file').className=m==='file'?'':'hide';
+ document.getElementById('up-link').className=m==='link'?'':'hide';}
+function elegido(inp){
+ var f=inp.files&&inp.files[0]; if(!f)return;
+ if(f.size>4*1024*1024){toast('El archivo pesa mas de 4 MB. Comprimelo o usa un enlace.');inp.value='';return;}
+ ARCH=f; document.getElementById('fsel').textContent='Listo: '+f.name+' ('+Math.round(f.size/1024)+' KB)';
+}
+var dz=document.getElementById('drop');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.className='drop on';});
+dz.addEventListener('dragleave',function(){dz.className='drop';});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.className='drop';var f=e.dataTransfer.files[0];if(f){document.getElementById('fin').files=e.dataTransfer.files;elegido(document.getElementById('fin'));}});
+
+function guardarVersion(){
+ var id=EDIT,d=DOCS[id]; if(!d)return;
+ var lbl=document.getElementById('u_lbl').value.trim();
+ var vig=document.getElementById('u_vig').value;
+ var btn=document.getElementById('u_btn'); btn.disabled=true; btn.textContent='Guardando...';
+ var vid='v'+Date.now().toString(36);
+ function commit(meta,blob){
+   var p=[];
+   var vers=d.versions||{}; vers[vid]=meta;
+   p.push(fbDb.ref(NODE+'/docs/'+id+'/versions/'+vid).set(meta));
+   if(vig!==d.vig) p.push(fbDb.ref(NODE+'/docs/'+id+'/vig').set(vig||''));
+   if(blob) p.push(fbDb.ref(NODE+'/blobs/'+id+'/'+vid).set(blob));
+   Promise.all(p).then(function(){btn.disabled=false;btn.textContent='Guardar version';cerrar();toast('Version guardada');})
+   .catch(function(e){console.error(e);btn.disabled=false;btn.textContent='Guardar version';toast('No se pudo guardar el archivo');});
+ }
+ if(MODO==='link'){
+   var url=document.getElementById('u_url').value.trim();
+   if(!url){toast('Pega el enlace');btn.disabled=false;btn.textContent='Guardar version';return;}
+   commit({at:new Date().toISOString(),by:USER.usuario,kind:'link',label:lbl,url:url,fname:lbl||'enlace'},null);
+ }else{
+   if(!ARCH){toast('Elige un archivo');btn.disabled=false;btn.textContent='Guardar version';return;}
+   var fr=new FileReader();
+   fr.onload=function(){
+     commit({at:new Date().toISOString(),by:USER.usuario,kind:'file',label:lbl,fname:ARCH.name,mime:ARCH.type||'application/octet-stream',size:ARCH.size},fr.result);
+   };
+   fr.onerror=function(){btn.disabled=false;btn.textContent='Guardar version';toast('No se pudo leer el archivo');};
+   fr.readAsDataURL(ARCH);
+ }
+}
+
+/* ---- ver / descargar ---- */
+function getBlob(docId,vid){return fbDb.ref(NODE+'/blobs/'+docId+'/'+vid).once('value').then(function(s){return s.val();});}
+function vidDe(d,v){var ks=Object.keys(d.versions||{});for(var i=0;i<ks.length;i++){if(d.versions[ks[i]]===v)return ks[i];}return null;}
+function ver(id,vid){
+ var d=DOCS[id]; if(!d)return; var v=vid?d.versions[vid]:vact(d); if(!v)return;
+ if(v.kind==='link'){window.open(v.url,'_blank');return;}
+ vid=vid||vidDe(d,v);
+ toast('Abriendo...');
+ getBlob(id,vid).then(function(data){
+   if(!data){toast('Sin archivo');return;}
+   var w=window.open('','_blank');
+   if(/pdf/i.test(v.mime)) w.document.write('<iframe src="'+data+'" style="border:0;width:100%;height:100vh"></iframe>');
+   else w.document.write('<img src="'+data+'" style="max-width:100%">');
+   w.document.title=v.fname||d.name;
+ });
+}
+function bajar(id,vid){
+ var d=DOCS[id]; if(!d)return; var v=vid?d.versions[vid]:vact(d); if(!v)return;
+ if(v.kind==='link'){window.open(v.url,'_blank');return;}
+ vid=vid||vidDe(d,v);
+ getBlob(id,vid).then(function(data){
+   if(!data){toast('Sin archivo');return;}
+   var a=document.createElement('a');a.href=data;a.download=v.fname||(d.name+'.pdf');document.body.appendChild(a);a.click();a.remove();
+ });
+}
+
+/* ---- historial ---- */
+function hist(id){
+ HDOC=id; var d=DOCS[id];
+ document.getElementById('hname').textContent=d.name;
+ var ks=Object.keys(d.versions||{});
+ ks.sort(function(a,b){return (d.versions[b].at||'').localeCompare(d.versions[a].at||'');});
+ var html=ks.length?ks.map(function(k,i){var v=d.versions[k];
+   return '<div class="hrow"><span class="v">v'+(ks.length-i)+'</span><span class="sp">'+esc(v.label||'')+' &middot; '+fecha((v.at||'').slice(0,10))+' por '+esc(v.by||'')+(i===0?' <span class="badge ok" style="margin-left:6px">Actual</span>':'')+'</span>'+
+   '<a onclick="bajar(\''+id+'\',\''+k+'\')">Descargar</a>'+(ESADMIN?' <a style="color:#c0574a" onclick="borrarVer(\''+id+'\',\''+k+'\')">Borrar</a>':'')+'</div>';
+ }).join(''):'<div class="note">Todavia no hay ninguna version cargada para este documento.</div>';
+ document.getElementById('hlist').innerHTML=html;
+ abrir('hist');
+}
+function borrarVer(id,vid){
+ if(!confirm('Borrar esta version?'))return;
+ Promise.all([fbDb.ref(NODE+'/docs/'+id+'/versions/'+vid).remove(),fbDb.ref(NODE+'/blobs/'+id+'/'+vid).remove()]).then(function(){cerrar();toast('Version borrada');});
+}
+
+/* ---- paquete ---- */
+function abrirPaquete(){aplicarPreset();abrir('paq');}
+function aplicarPreset(){
+ var k=document.getElementById('p_preset').value,P=PRESETS[k];
+ document.getElementById('p_desc').textContent=P.d;
+ var arr=Object.keys(DOCS).map(function(i){var d=DOCS[i];d.id=i;return d;});
+ var elegidos=arr.filter(function(d){
+   if(!vact(d))return false;
+   if(!P.m)return true;
+   return P.m.some(function(m){return (d.name||'').toLowerCase().indexOf(m.toLowerCase().split(' - ')[0].toLowerCase())>=0 || (d.name||'').toLowerCase().indexOf(m.toLowerCase())>=0;});
+ });
+ sel={}; elegidos.forEach(function(d){sel[d.id]=1;});
+ document.getElementById('p_list').innerHTML=arr.map(function(d){
+   var tiene=!!vact(d);
+   return '<div class="hrow"><input type="checkbox" '+(sel[d.id]?'checked':'')+(tiene?'':' disabled')+' onclick="marcar(\''+d.id+'\',this.checked)"><span class="sp">'+esc(d.name)+(tiene?'':' <span style="color:#c0574a;font-size:.7rem">sin archivo</span>')+'</span></div>';
+ }).join('');
+ render();
+}
+function descargarZip(desdeModal){
+ var ids=Object.keys(sel); if(!ids.length){toast('No hay documentos seleccionados');return;}
+ toast('Preparando ZIP...');
+ var zip=new JSZip(), tareas=[];
+ ids.forEach(function(id){
+   var d=DOCS[id]; if(!d)return; var v=vact(d); if(!v)return;
+   if(v.kind==='link'){zip.file('ENLACES.txt',(zip.files['ENLACES.txt']?'':'')+d.name+': '+v.url+'\n',{createFolders:false});return;}
+   var vid=vidDe(d,v);
+   tareas.push(getBlob(id,vid).then(function(data){
+     if(!data)return;
+     var b64=String(data).split(',')[1]||'';
+     var ext=(v.fname||'').indexOf('.')>=0?'':'.pdf';
+     var carp=(CARPETAS.filter(function(c){return c.id===d.folder;})[0]||{n:'Otros'}).n;
+     zip.file(carp+'/'+d.name.replace(/[\\/:*?"<>|]/g,'-')+ext,b64,{base64:true});
+   }));
+ });
+ Promise.all(tareas).then(function(){
+   return zip.generateAsync({type:'blob'});
+ }).then(function(blob){
+   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+   a.download='Documentos Herza '+new Date().toISOString().slice(0,10)+'.zip';
+   document.body.appendChild(a);a.click();a.remove();
+   if(desdeModal)cerrar();
+   toast('ZIP descargado');
+ }).catch(function(e){console.error(e);toast('No se pudo generar el ZIP');});
+}
+</script>
+</body>
+</html>
