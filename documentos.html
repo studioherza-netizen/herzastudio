@@ -29,6 +29,9 @@ a{color:inherit}
 .brand h1{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:300;letter-spacing:2px;line-height:1}
 .brand p{font-size:.8rem;font-weight:300;letter-spacing:3px;color:#7a7a7a;margin-top:4px}
 .back{font-size:.78rem;letter-spacing:1px;color:#7a7a7a;text-decoration:none;display:inline-block;margin-bottom:10px}
+.homebtn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:#6b7c3e;color:#fff;text-decoration:none;border-radius:6px;font-size:.72rem;letter-spacing:1px;white-space:nowrap;font-family:'Lato',sans-serif}
+.homebtn:hover{background:#5c6b34;color:#fff}
+#loginhome{position:fixed;top:18px;left:18px;z-index:30}
 .back:hover{color:#6b7c3e}
 .user{display:flex;align-items:center;gap:10px;font-size:.8rem;color:#7a7a7a}
 .avatar{width:34px;height:34px;border-radius:50%;background:#6b7c3e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;letter-spacing:.5px}
@@ -134,6 +137,7 @@ input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
 <body>
 
 <div id="login">
+  <a class="homebtn" id="loginhome" href="https://herzastudio.vercel.app/">&#8962; Inicio</a>
   <div class="lbox">
     <h1>Documentos.</h1>
     <p>ARCHIVO DIGITAL HERZA</p>
@@ -147,7 +151,7 @@ input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
 <div class="wrap hide" id="app">
   <div class="top">
     <div>
-      <a class="back" href="https://herzastudio.vercel.app/">&larr; VOLVER AL PORTAL</a>
+      <a class="homebtn" style="margin-bottom:10px" href="https://herzastudio.vercel.app/">&#8962; Inicio</a>
       <div class="brand"><h1>Documentos.</h1><p>ARCHIVO DIGITAL HERZA</p></div>
     </div>
     <div class="user">
