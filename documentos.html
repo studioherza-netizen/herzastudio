@@ -544,18 +544,34 @@ function guardarVersion(){
 /* ---- ver / descargar ---- */
 function getBlob(docId,vid){return fbDb.ref(NODE+'/blobs/'+docId+'/'+vid).once('value').then(function(s){return s.val();});}
 function vidDe(d,v){var ks=Object.keys(d.versions||{});for(var i=0;i<ks.length;i++){if(d.versions[ks[i]]===v)return ks[i];}return null;}
+function aBlob(data,mime){
+ var i=data.indexOf(','); if(i<0) throw new Error('dataURL');
+ var head=data.slice(0,i), body=data.slice(i+1);
+ var m=(head.match(/^data:([^;,]*)/)||[])[1]||mime||'application/octet-stream';
+ if(/;base64/i.test(head)){
+   var bin=atob(body), n=bin.length, arr=new Uint8Array(n);
+   for(var j=0;j<n;j++) arr[j]=bin.charCodeAt(j);
+   return new Blob([arr],{type:m});
+ }
+ return new Blob([decodeURIComponent(body)],{type:m});
+}
 function ver(id,vid){
  var d=DOCS[id]; if(!d)return; var v=vid?d.versions[vid]:vact(d); if(!v)return;
  if(v.kind==='link'){window.open(v.url,'_blank');return;}
  vid=vid||vidDe(d,v);
+ var nom=v.fname||d.name;
+ var w=window.open('','_blank');
+ if(w){try{w.document.write('<!doctype html><meta charset="utf-8"><title>'+esc(nom)+'</title><body style="margin:0;background:#3a3a3a;color:#e8e6e1;font:15px system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh">Abriendo '+esc(nom)+'&hellip;</body>');w.document.close();}catch(e){}}
  toast('Abriendo...');
  getBlob(id,vid).then(function(data){
-   if(!data){toast('Sin archivo');return;}
-   var w=window.open('','_blank');
-   if(/pdf/i.test(v.mime)) w.document.write('<iframe src="'+data+'" style="border:0;width:100%;height:100vh"></iframe>');
-   else w.document.write('<img src="'+data+'" style="max-width:100%">');
-   w.document.title=v.fname||d.name;
- });
+   if(!data){toast('Sin archivo'); if(w)try{w.close();}catch(e){} return;}
+   var url;
+   try{ url=URL.createObjectURL(aBlob(data,v.mime)); }
+   catch(e){ toast('No se pudo abrir el archivo'); if(w)try{w.close();}catch(e2){} return; }
+   if(w){ try{ w.location.replace(url); }catch(e){ window.open(url,'_blank'); } }
+   else { window.open(url,'_blank'); }
+   setTimeout(function(){try{URL.revokeObjectURL(url);}catch(e){}},120000);
+ }).catch(function(){ toast('No se pudo abrir el archivo'); if(w)try{w.close();}catch(e){} });
 }
 function bajar(id,vid){
  var d=DOCS[id]; if(!d)return; var v=vid?d.versions[vid]:vact(d); if(!v)return;
@@ -563,7 +579,10 @@ function bajar(id,vid){
  vid=vid||vidDe(d,v);
  getBlob(id,vid).then(function(data){
    if(!data){toast('Sin archivo');return;}
-   var a=document.createElement('a');a.href=data;a.download=v.fname||(d.name+'.pdf');document.body.appendChild(a);a.click();a.remove();
+   var href=data,url=null;
+   try{ url=URL.createObjectURL(aBlob(data,v.mime)); href=url; }catch(e){}
+   var a=document.createElement('a');a.href=href;a.download=v.fname||(d.name+'.pdf');document.body.appendChild(a);a.click();a.remove();
+   if(url) setTimeout(function(){try{URL.revokeObjectURL(url);}catch(e){}},60000);
  });
 }
 
