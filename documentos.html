@@ -130,6 +130,14 @@ input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
 .footer{text-align:center;color:#a0a0a0;font-size:.75rem;font-weight:300;letter-spacing:1px;margin-top:40px}
 .toast{position:fixed;bottom:24px;right:24px;background:#4a4a4a;color:#fff;padding:12px 18px;border-radius:10px;font-size:.83rem;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transform:translateY(16px);transition:.3s;z-index:80;max-width:320px}
 .toast.show{opacity:1;transform:translateY(0)}
+.fsec{border-top:1px solid #f0eeea;margin:6px 0 12px;padding-top:16px;display:flex;align-items:center;gap:10px}
+.fseclab{font-size:.7rem;letter-spacing:1.1px;color:#a0a0a0;font-weight:700}
+.frow{display:flex;gap:8px;align-items:flex-end}
+.frow .x{padding-bottom:9px}
+.fichaT{width:100%;border-collapse:collapse}
+.fichaT td{padding:9px 0;border-bottom:1px solid #f5f3f0;font-size:.84rem;vertical-align:top}
+.fichaT td.k{width:44%;color:#a0a0a0;font-size:.75rem;letter-spacing:.4px;padding-right:12px}
+.fichaT tr:last-child td{border-bottom:none}
 .hide{display:none!important}
 @media(max-width:760px){.hidem{display:none}.brand h1{font-size:2rem}td,th{padding:11px 9px}}
 </style>
@@ -219,6 +227,13 @@ input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
         <div style="flex:1"><label>VIGENCIA HASTA</label><input type="date" id="d_vig"></div>
         <div style="flex:1"><label>PERIODICIDAD</label><select id="d_per"><option>Mensual</option><option>Bimestral</option><option>Anual</option><option>Permanente</option></select></div>
       </div>
+      <div class="fsec">
+        <span class="fseclab">DATOS DEL DOCUMENTO</span>
+        <span style="flex:1"></span>
+        <button class="mini alt" onclick="agregarCampo()">+ Agregar dato</button>
+      </div>
+      <div class="note" id="d_fhint" style="margin-bottom:14px">Llena sólo lo que te sirva. Se guarda junto al documento y aparece en su ficha.</div>
+      <div id="d_fields"></div>
     </div>
     <div class="mfoot">
       <button class="btn ghost" id="d_del" onclick="borrarDoc()" style="margin-right:auto;color:#c0574a">Eliminar</button>
@@ -274,12 +289,29 @@ input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
         <select id="p_preset" onchange="aplicarPreset()">
           <option value="alta">Alta de proveedor (cliente nuevo)</option>
           <option value="lic">Licitacion</option>
+          <option value="autos">Seguros de coche</option>
+          <option value="pers">Personales (pasaporte, visa, INE)</option>
+          <option value="arren">Arrendamientos</option>
           <option value="todo">Todo el archivo</option>
         </select></div>
       <div class="note" id="p_desc"></div>
       <div id="p_list" style="margin-top:14px;max-height:230px;overflow:auto"></div>
     </div>
     <div class="mfoot"><button class="btn ghost" onclick="cerrar()">Cancelar</button><button class="btn" onclick="descargarZip(true)">Descargar ZIP</button></div>
+  </div>
+</div>
+
+<!-- MODAL: ficha del documento -->
+<div class="ov" id="ov-ficha" onclick="if(event.target===this)cerrar()">
+  <div class="modal">
+    <div class="mhead"><h3 id="f_name">Ficha</h3><span class="x" onclick="cerrar()">&times;</span></div>
+    <div class="mbody"><div id="f_body"></div></div>
+    <div class="mfoot">
+      <button class="btn ghost" onclick="cerrar()">Cerrar</button>
+      <button class="btn ghost" id="f_hist">Historial</button>
+      <button class="btn ghost" id="f_ver">Ver archivo</button>
+      <button class="btn adminonly" id="f_edit">Editar datos</button>
+    </div>
   </div>
 </div>
 
@@ -299,7 +331,34 @@ var USER=null, ESADMIN=false, DOCS={}, carpeta=null, filtro=null, sel={}, EDIT=n
 var CARPETAS=[
  {id:'fis',n:'Fiscales de la empresa',c:'#b49b78',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.6c0-1.1-.9-2-2-2h-11c-1.1 0-2 .9-2 2v2.6M3.75 18.75h16.5M6.75 9.65V5.25c0-.83.67-1.5 1.5-1.5h7.5c.83 0 1.5.67 1.5 1.5v4.4"/>'},
  {id:'ide',n:'Identificaciones',c:'#7d9b95',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.12a7.5 7.5 0 0 1 15 0A17.93 17.93 0 0 1 12 21.75c-2.68 0-5.22-.58-7.5-1.63Z"/>'},
- {id:'ban',n:'Bancarios y seguros',c:'#8c9baa',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9v10.5a1.5 1.5 0 0 0 1.5 1.5h16.5a1.5 1.5 0 0 0 1.5-1.5V9a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 9Zm3.75 8.25h4.5"/>'}
+ {id:'ban',n:'Bancarios y seguros',c:'#8c9baa',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9v10.5a1.5 1.5 0 0 0 1.5 1.5h16.5a1.5 1.5 0 0 0 1.5-1.5V9a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 9Zm3.75 8.25h4.5"/>'},
+ {id:'per',n:'Personales',c:'#a67f9c',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.04v13m0-13a6.5 6.5 0 0 0-6.5-1.5v13a6.5 6.5 0 0 1 6.5 1.5m0-13a6.5 6.5 0 0 1 6.5-1.5v13a6.5 6.5 0 0 0-6.5 1.5"/>'},
+ {id:'veh',n:'Autos y seguros',c:'#6b8fa3',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.38a1.13 1.13 0 0 1-1.13-1.13V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.13c.62 0 1.13-.5 1.09-1.12a17.9 17.9 0 0 0-3.21-9.19 2.06 2.06 0 0 0-1.58-.86H14.25M16.5 18.75H8.25m8.25 0V4.88c0-.62-.5-1.13-1.13-1.13H3.38c-.62 0-1.13.5-1.13 1.13v9.37m14.25 4.5v-4.5m0 0h-3.75"/>'},
+ {id:'arr',n:'Arrendamientos',c:'#b08968',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.95-8.95c.44-.44 1.15-.44 1.59 0L21.75 12M4.5 9.75v10.13c0 .62.5 1.12 1.13 1.12H9.75V16.13c0-.62.5-1.13 1.13-1.13h2.25c.62 0 1.12.5 1.12 1.13V21h4.13c.62 0 1.12-.5 1.12-1.12V9.75"/>'},
+ {id:'var',n:'Varios',c:'#8a8f7d',ico:'<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.06-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.38a1.5 1.5 0 0 1-1.06-.44Z"/>'}
+];
+
+/* Campos (ficha de datos) sugeridos por carpeta */
+var FIELDS={
+ fis:['Titular','Referencia / folio','Notas'],
+ ide:['Titular','Número de documento','Autoridad que lo expide','Notas'],
+ ban:['Institución','Número de cuenta o póliza','Contacto','Notas'],
+ per:['Titular','Número de documento','País / autoridad','Fecha de expedición','Notas'],
+ veh:['Auto (marca y modelo)','Año','Color','Placas','Número de serie (VIN)','Aseguradora','Número de póliza','Tipo de cobertura','Titular / conductor','Prima o pago','Teléfono de siniestros','Notas'],
+ arr:['Inmueble / dirección','Yo soy (arrendador o arrendatario)','Contraparte','Renta mensual','Depósito en garantía','Inicio del contrato','Fin del contrato','Día de pago','Notas'],
+ var:['Referencia','Responsable','Notas']
+};
+var FROWS=[];
+
+/* Documentos que se agregan una sola vez al activar las carpetas nuevas */
+var SEED2=[
+ ['per','Pasaporte','Titular: Karim Zaragoza','Permanente'],
+ ['per','Visa','Titular: Karim Zaragoza','Permanente'],
+ ['veh','Seguro de coche 1','Póliza vigente','Anual'],
+ ['veh','Seguro de coche 2','Póliza vigente','Anual'],
+ ['veh','Seguro de coche 3','Póliza vigente','Anual'],
+ ['arr','Contrato de arrendamiento 1','Inmueble','Permanente'],
+ ['var','Documento varios 1','Cámbiale el nombre desde Editar','Permanente']
 ];
 
 var SEED=[
@@ -320,6 +379,9 @@ var SEED=[
 var PRESETS={
  alta:{d:'Incluye lo que casi siempre piden para dar de alta a Herza como proveedor.',m:['Constancia de Situacion Fiscal','Opinion de Cumplimiento','Acta Constitutiva','Poder Notarial','INE - Karim','Caratula bancaria']},
  lic:{d:'Paquete amplio para licitacion o concurso.',m:['Constancia de Situacion Fiscal','Opinion de Cumplimiento','Acta Constitutiva','Poder Notarial','INE','Caratula bancaria','Poliza','Carta de referencias']},
+ autos:{d:'Pólizas y datos de los coches asegurados.',f:['veh'],m:null},
+ pers:{d:'Documentos personales: pasaporte, visa e identificaciones.',f:['per','ide'],m:null},
+ arren:{d:'Contratos de arrendamiento de propiedades.',f:['arr'],m:null},
  todo:{d:'Todos los documentos que tengan archivo cargado.',m:null}
 };
 
@@ -341,6 +403,64 @@ function estado(d){
   return {k:'ok',t:'Vigente'};
 }
 function colorEstado(k){return k==='ok'?'#6b7c3e':k==='warn'?'#c07a4a':k==='bad'?'#c0574a':k==='non'?'#d8d4cd':'#c9c5bd';}
+
+/* ============ Ficha de datos ============ */
+function metaArr(d){
+ var m=d&&d.meta; if(!m)return [];
+ var a=Array.isArray(m)?m:Object.keys(m).map(function(k){return m[k];});
+ return a.filter(function(x){return x&&x.l;});
+}
+function metaChip(d){
+ var m=metaArr(d); if(!m.length)return '';
+ var t=m.slice(0,2).map(function(x){return esc(x.v);}).join(' \u00b7 ');
+ if(!t)return '';
+ return (d.sub?' \u00b7 ':'')+'<span style="color:#8a8f7d">'+t+'</span>';
+}
+function buildFields(d){
+ var f=document.getElementById('d_folder').value;
+ var base=(FIELDS[f]||FIELDS['var']).slice();
+ var cur=metaArr(d||{});
+ var rows=[];
+ base.forEach(function(lb){
+   var hit=cur.filter(function(x){return x.l===lb;})[0];
+   rows.push({l:lb,v:hit?hit.v:'',fix:1});
+ });
+ cur.forEach(function(x){ if(base.indexOf(x.l)<0) rows.push({l:x.l,v:x.v,fix:0}); });
+ FROWS=rows; drawFields();
+}
+function drawFields(){
+ document.getElementById('d_fields').innerHTML=FROWS.map(function(r,i){
+  if(r.fix) return '<div class="field"><label>'+esc(r.l).toUpperCase()+'</label><input value="'+esc(r.v)+'" oninput="FROWS['+i+'].v=this.value"></div>';
+  return '<div class="field frow"><div style="flex:.9"><label>DATO</label><input value="'+esc(r.l)+'" placeholder="Nombre del dato" oninput="FROWS['+i+'].l=this.value"></div>'+
+         '<div style="flex:1.1"><label>VALOR</label><input value="'+esc(r.v)+'" oninput="FROWS['+i+'].v=this.value"></div>'+
+         '<span class="x" title="Quitar" onclick="quitarCampo('+i+')">&times;</span></div>';
+ }).join('');
+}
+function agregarCampo(){FROWS.push({l:'',v:'',fix:0});drawFields();
+ var c=document.getElementById('d_fields');var ins=c.querySelectorAll('input');if(ins.length)ins[ins.length-2].focus();}
+function quitarCampo(i){FROWS.splice(i,1);drawFields();}
+function cambioCarpeta(){buildFields({meta:FROWS.filter(function(r){return String(r.v||'').trim();})});}
+
+function ficha(id){
+ var d=DOCS[id]; if(!d)return;
+ var e=estado(d), v=vact(d), m=metaArr(d);
+ var carp=(CARPETAS.filter(function(c){return c.id===d.folder;})[0]||{n:'-'}).n;
+ var rows=[['Carpeta',carp]];
+ if(d.sub)rows.push(['Referencia',d.sub]);
+ rows.push(['Periodicidad',d.per||'-']);
+ rows.push(['Vigencia hasta',d.vig?fecha(d.vig):(d.per==='Permanente'?'Permanente':'Sin fecha')]);
+ m.forEach(function(x){ if(x.v) rows.push([x.l,x.v]); });
+ rows.push(['Archivo actual', v?((v.label?esc(v.label)+' \u00b7 ':'')+(v.kind==='link'?'enlace':esc(v.fname||''))+' \u00b7 '+fecha((v.at||'').slice(0,10))):'Sin archivo cargado']);
+ document.getElementById('f_name').textContent=d.name;
+ document.getElementById('f_body').innerHTML='<div style="margin-bottom:14px"><span class="badge '+e.k+'">'+e.t+'</span></div><table class="fichaT">'+
+   rows.map(function(r){return '<tr><td class="k">'+esc(r[0]).toUpperCase()+'</td><td>'+(r[0]==='Archivo actual'?r[1]:esc(r[1]))+'</td></tr>';}).join('')+'</table>'+
+   (m.length?'':'<div class="note" style="margin-top:14px">Este documento todavia no tiene datos capturados'+(ESADMIN?'. Usa <b>Editar datos</b> para agregar póliza, año, placas, etc.':'.')+'</div>');
+ var bv=document.getElementById('f_ver'); bv.className='btn ghost'+(v?'':' hide'); bv.onclick=function(){cerrar();ver(id);};
+ document.getElementById('f_hist').onclick=function(){cerrar();hist(id);};
+ var be=document.getElementById('f_edit'); be.onclick=function(){cerrar();editar(id);};
+ be.className='btn adminonly'+(ESADMIN?'':' hide');
+ abrir('ficha');
+}
 
 /* ============ Login ============ */
 function norm(s){return String(s||'').trim().toLowerCase();}
@@ -388,7 +508,7 @@ function cargar(){
   fbDb.ref(NODE+'/docs').on('value',function(sn){
     var v=sn.val();
     if(!v||!Object.keys(v).length){ if(ESADMIN) sembrar(); else {DOCS={};render();} return; }
-    DOCS=v; render();
+    DOCS=v; render(); sembrar2();
     document.getElementById('fstat').textContent='sincronizado';
   },function(e){console.error(e);document.getElementById('fstat').textContent='error de lectura';});
 }
@@ -396,6 +516,17 @@ function sembrar(){
   var o={};
   SEED.forEach(function(s,i){var id='seed'+i;o[id]={id:id,folder:s[0],name:s[1],sub:s[2],per:s[3],vig:'',order:i,versions:null};});
   fbDb.ref(NODE+'/docs').set(o).then(function(){toast('Archivo inicial creado - ya puedes subir tus PDF');});
+}
+var SEEDED2=false;
+function sembrar2(){
+ if(SEEDED2||!ESADMIN||!fbDb)return; SEEDED2=true;
+ fbDb.ref(NODE+'/meta/seed2').once('value').then(function(sn){
+   if(sn.val())return;
+   var up={};
+   SEED2.forEach(function(x,i){var id='x'+i;if(!DOCS[id])up[id]={id:id,folder:x[0],name:x[1],sub:x[2],per:x[3],vig:'',order:20+i,versions:null,meta:null};});
+   fbDb.ref(NODE+'/meta/seed2').set(new Date().toISOString());
+   if(Object.keys(up).length)fbDb.ref(NODE+'/docs').update(up).then(function(){toast('Listo: se agregaron las carpetas Personales, Autos, Arrendamientos y Varios');});
+ }).catch(function(e){console.error(e);});
 }
 function guardarDocsNode(id,val){ return fbDb.ref(NODE+'/docs/'+id).set(val); }
 
@@ -426,7 +557,7 @@ function render(){
   var list=arr.filter(function(d){
     if(carpeta&&d.folder!==carpeta)return false;
     if(filtro==='vence'){var k=estado(d).k;if(k!=='warn'&&k!=='bad')return false;}
-    if(q&&((d.name||'')+' '+(d.sub||'')).toLowerCase().indexOf(q)<0)return false;
+    if(q&&((d.name||'')+' '+(d.sub||'')+' '+metaArr(d).map(function(x){return x.l+' '+x.v;}).join(' ')).toLowerCase().indexOf(q)<0)return false;
     return true;
   });
   var tit=filtro==='vence'?'Por actualizar':(carpeta?(CARPETAS.filter(function(c){return c.id===carpeta})[0].n):'Todos los documentos');
@@ -437,13 +568,14 @@ function render(){
     var e=estado(d),v=vact(d),tp=tipo(v);
     var lbl={pdf:'PDF',img:'IMG',doc:'DOC',lnk:'LINK',non:'--'}[tp];
     return '<tr class="row"><td><input type="checkbox" '+(sel[d.id]?'checked':'')+' onclick="marcar(\''+d.id+'\',this.checked)"></td>'+
-    '<td><div class="docname"><div class="ftype t-'+tp+'">'+lbl+'</div><div><div class="dn">'+esc(d.name)+'</div><div class="dsub">'+esc(d.sub||'')+'</div></div></div></td>'+
+    '<td><div class="docname"><div class="ftype t-'+tp+'">'+lbl+'</div><div><div class="dn" style="cursor:pointer" title="Ver ficha del documento" onclick="ficha(\''+d.id+'\')">'+esc(d.name)+'</div><div class="dsub">'+esc(d.sub||'')+metaChip(d)+'</div></div></div></td>'+
     '<td class="hidem">'+(v?fecha((v.at||'').slice(0,10)):(ESADMIN?'<span class="lnkup" onclick="subir(\''+d.id+'\')">sin archivo</span>':'<span style="color:#c0574a">sin archivo</span>'))+'<div class="dsub">'+esc(d.per||'')+'</div></td>'+
     '<td class="hidem">'+(d.vig?fecha(d.vig):(d.per==='Permanente'?'Permanente':'&mdash;'))+'</td>'+
     '<td><span class="badge '+e.k+'">'+e.t+'</span></td>'+
     '<td><div class="acts">'+
       '<div class="iconbtn '+(v?'':'off')+'" title="Ver" onclick="ver(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1.01 1.01 0 0 1 0-.64C3.42 7.51 7.36 4.5 12 4.5c4.64 0 8.57 3.01 9.96 7.18.04.21.04.43 0 .64C20.58 16.49 16.64 19.5 12 19.5c-4.64 0-8.57-3.01-9.96-7.18Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></div>'+
       '<button class="mini alt '+(v?'':'offb')+'" title="Descargar este documento" onclick="bajar(\''+d.id+'\')">&darr; Descargar</button>'+
+      '<div class="iconbtn" title="Ficha de datos" onclick="ficha(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v4.5m-1.5 0h3m-3-9h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>'+
       '<div class="iconbtn" title="Historial" onclick="hist(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>'+
       (ESADMIN?'<button class="mini" title="Subir archivo de este documento" onclick="subir(\''+d.id+'\')">'+(v?'Actualizar':'Subir')+'</button>'+
       '<div class="iconbtn" title="Editar" onclick="editar(\''+d.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.86 4.49 1.65-1.65a1.87 1.87 0 1 1 2.65 2.65L8.9 17.74a4.5 4.5 0 0 1-1.9 1.13l-2.69.81.8-2.69a4.5 4.5 0 0 1 1.14-1.9L16.86 4.5Z"/></svg></div>':'')+
@@ -462,22 +594,23 @@ function limpiar(){sel={};document.getElementById('chkall').checked=false;render
 
 /* ============ Modales ============ */
 function abrir(id){document.getElementById('ov-'+id).classList.add('show');}
-function cerrar(){['doc','up','hist','paq'].forEach(function(i){document.getElementById('ov-'+i).classList.remove('show');});}
+function cerrar(){['doc','up','hist','paq','ficha'].forEach(function(i){document.getElementById('ov-'+i).classList.remove('show');});}
 
-function fillFolders(sel_){var s=document.getElementById('d_folder');s.innerHTML=CARPETAS.map(function(c){return '<option value="'+c.id+'"'+(c.id===sel_?' selected':'')+'>'+c.n+'</option>';}).join('');}
+function fillFolders(sel_){var s=document.getElementById('d_folder');s.innerHTML=CARPETAS.map(function(c){return '<option value="'+c.id+'"'+(c.id===sel_?' selected':'')+'>'+c.n+'</option>';}).join('');s.onchange=cambioCarpeta;}
 function nuevoDoc(){EDIT=null;document.getElementById('dtit').textContent='Nuevo documento';fillFolders(carpeta||'fis');
  document.getElementById('d_name').value='';document.getElementById('d_sub').value='';document.getElementById('d_vig').value='';document.getElementById('d_per').value='Mensual';
- document.getElementById('d_del').style.display='none';abrir('doc');}
+ document.getElementById('d_del').style.display='none';buildFields(null);abrir('doc');}
 function editar(id){EDIT=id;var d=DOCS[id];document.getElementById('dtit').textContent='Editar documento';fillFolders(d.folder);
  document.getElementById('d_name').value=d.name||'';document.getElementById('d_sub').value=d.sub||'';document.getElementById('d_vig').value=d.vig||'';document.getElementById('d_per').value=d.per||'Mensual';
- document.getElementById('d_del').style.display='';abrir('doc');}
+ document.getElementById('d_del').style.display='';buildFields(d);abrir('doc');}
 function guardarDoc(){
  var name=document.getElementById('d_name').value.trim();
  if(!name){toast('Ponle nombre al documento');return;}
  var id=EDIT||uid();
  var base=EDIT?DOCS[EDIT]:{order:99,versions:null};
  var obj={id:id,folder:document.getElementById('d_folder').value,name:name,sub:document.getElementById('d_sub').value.trim(),
-   vig:document.getElementById('d_vig').value,per:document.getElementById('d_per').value,order:base.order==null?99:base.order,versions:base.versions||null};
+   vig:document.getElementById('d_vig').value,per:document.getElementById('d_per').value,order:base.order==null?99:base.order,versions:base.versions||null,
+   meta:(function(){var a=FROWS.filter(function(r){return String(r.l||'').trim()&&String(r.v||'').trim();}).map(function(r){return {l:String(r.l).trim(),v:String(r.v).trim()};});return a.length?a:null;})()};
  guardarDocsNode(id,obj).then(function(){cerrar();toast('Guardado');}).catch(function(){toast('No se pudo guardar');});
 }
 function borrarDoc(){
@@ -612,6 +745,7 @@ function aplicarPreset(){
  var arr=Object.keys(DOCS).map(function(i){var d=DOCS[i];d.id=i;return d;});
  var elegidos=arr.filter(function(d){
    if(!vact(d))return false;
+   if(P.f)return P.f.indexOf(d.folder)>=0;
    if(!P.m)return true;
    return P.m.some(function(m){return (d.name||'').toLowerCase().indexOf(m.toLowerCase().split(' - ')[0].toLowerCase())>=0 || (d.name||'').toLowerCase().indexOf(m.toLowerCase())>=0;});
  });
