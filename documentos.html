@@ -37,9 +37,19 @@ a{color:inherit}
 .avatar{width:34px;height:34px;border-radius:50%;background:#6b7c3e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;letter-spacing:.5px}
 .out{cursor:pointer;font-size:.72rem;color:#b0b0b0;border:1px solid #e0ddd6;background:#fff;padding:6px 10px;border-radius:6px}
 
-.alert{background:#fff;border-left:4px solid #c07a4a;border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:18px;box-shadow:0 4px 18px rgba(0,0,0,.06);font-size:.87rem}
-.alert .sp{flex:1}
-.alert a{color:#6b7c3e;font-size:.8rem;letter-spacing:.5px;text-decoration:none;border-bottom:1px solid rgba(107,124,62,.4);cursor:pointer}
+.alerts{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.06);margin-bottom:18px;overflow:hidden}
+.ahead{padding:13px 18px;background:#faf9f7;border-bottom:1px solid #f0eeea;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ahead b{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600}
+.alink{color:#6b7c3e;font-size:.78rem;letter-spacing:.5px;text-decoration:none;border-bottom:1px solid rgba(107,124,62,.4);cursor:pointer}
+.arow{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid #f5f3f0;flex-wrap:wrap;border-left:4px solid transparent}
+.arow:last-child{border-bottom:none}
+.arow.abad{border-left-color:#c0574a;background:rgba(192,87,74,.04)}
+.arow.awarn{border-left-color:#c07a4a;background:rgba(192,122,74,.04)}
+.arow.aok{border-left-color:#cfcbc3}
+.aname{font-size:.9rem;font-weight:700;color:#4a4a4a}
+.adate{font-size:.76rem;color:#8a857d;margin-top:2px}
+.arow.abad .adate{color:#a8443a}
+.arow.awarn .adate{color:#a3603a}
 
 .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
 .search{flex:1;min-width:220px;position:relative}
@@ -169,11 +179,7 @@ input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
     </div>
   </div>
 
-  <div class="alert hide" id="alert">
-    <span style="font-size:1.1rem">&#9888;&#65039;</span>
-    <div class="sp" id="alerttxt"></div>
-    <a onclick="filtrar('vence')">Ver pendientes</a>
-  </div>
+  <div id="alerts"></div>
 
   <div class="bar">
     <div class="search">
@@ -264,7 +270,7 @@ input[type=checkbox]{accent-color:#6b7c3e;width:15px;height:15px;cursor:pointer}
         <div class="field"><label>ENLACE (Drive, Dropbox, etc.)</label><input id="u_url" placeholder="https://drive.google.com/..."></div>
       </div>
       <div class="field" style="margin-top:16px"><label>ETIQUETA DE ESTA VERSION</label><input id="u_lbl" placeholder="Agosto 2026"></div>
-      <div class="field"><label>ACTUALIZAR VIGENCIA HASTA</label><input type="date" id="u_vig"></div>
+      <div class="field"><label>ACTUALIZAR VIGENCIA HASTA <span style="color:#6b7c3e;font-weight:400;letter-spacing:0">(sugerida según la periodicidad)</span></label><input type="date" id="u_vig"></div>
       <div class="note">La version anterior no se borra: queda en el historial con su fecha, para que siempre puedas recuperar la constancia de un mes pasado.</div>
     </div>
     <div class="mfoot"><button class="btn ghost" onclick="cerrar()">Cancelar</button><button class="btn" id="u_btn" onclick="guardarVersion()">Guardar version</button></div>
@@ -326,6 +332,7 @@ var REST=FB.databaseURL;
 var NODE='documentosHerza';
 
 /* ============ Estado ============ */
+var AVISO=15;   /* días de anticipación con que se avisa un vencimiento */
 var USER=null, ESADMIN=false, DOCS={}, carpeta=null, filtro=null, sel={}, EDIT=null, HDOC=null, MODO='file', ARCH=null;
 
 var CARPETAS=[
@@ -399,10 +406,95 @@ function estado(d){
   if(!d.vig)return (d.per==='Permanente')?{k:'perm',t:'Permanente'}:{k:'perm',t:'Sin fecha'};
   var dias=Math.round((new Date(d.vig+'T00:00:00')-hoy())/864e5);
   if(dias<0)return {k:'bad',t:'Vencido'};
-  if(dias<=20)return {k:'warn',t:dias===0?'Vence hoy':'Vence en '+dias+' d'};
+  if(dias<=AVISO)return {k:'warn',t:dias===0?'Vence hoy':'Vence en '+dias+' d'};
   return {k:'ok',t:'Vigente'};
 }
 function colorEstado(k){return k==='ok'?'#6b7c3e':k==='warn'?'#c07a4a':k==='bad'?'#c0574a':k==='non'?'#d8d4cd':'#c9c5bd';}
+
+/* ============ Alertas de vencimiento ============ */
+function isoLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function diasPara(d){ if(!d||!d.vig)return null; return Math.round((new Date(d.vig+'T00:00:00')-hoy())/864e5); }
+function textoDias(n){
+ if(n<0){var a=Math.abs(n);return 'venció hace '+a+' día'+(a===1?'':'s');}
+ if(n===0)return 'vence hoy';
+ if(n===1)return 'falta 1 día';
+ return 'faltan '+n+' días';
+}
+function sugerirVig(per){
+ var n=new Date();
+ if(per==='Mensual')n.setMonth(n.getMonth()+1);
+ else if(per==='Bimestral')n.setMonth(n.getMonth()+2);
+ else if(per==='Anual')n.setFullYear(n.getFullYear()+1);
+ else return '';
+ return isoLocal(n);
+}
+function fcal(iso,plus){var d=new Date(iso+'T00:00:00');if(plus)d.setDate(d.getDate()+plus);return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');}
+function calGoogle(id){
+ var d=DOCS[id]; if(!d)return;
+ if(!d.vig){toast('Primero ponle fecha de vigencia a este documento');return;}
+ var t='Vence: '+d.name+' (Herza)';
+ var det='Documento del archivo digital de Herza Studio.\nVence el '+fecha(d.vig)+'.\nSube la versión nueva en https://herzastudio.vercel.app/documentos.html';
+ window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(t)+
+   '&dates='+fcal(d.vig)+'/'+fcal(d.vig,1)+'&details='+encodeURIComponent(det),'_blank');
+}
+function calIcs(id){
+ var d=DOCS[id]; if(!d)return;
+ if(!d.vig){toast('Primero ponle fecha de vigencia a este documento');return;}
+ var st=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+ var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Herza Studio//Documentos//ES','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+   'UID:'+id+'-'+d.vig+'@herzastudio','DTSTAMP:'+st,'DTSTART;VALUE=DATE:'+fcal(d.vig),'DTEND;VALUE=DATE:'+fcal(d.vig,1),
+   'SUMMARY:Vence: '+d.name+' (Herza)',
+   'DESCRIPTION:Archivo digital Herza. Sube la versión nueva en https://herzastudio.vercel.app/documentos.html',
+   'BEGIN:VALARM','TRIGGER:-P'+AVISO+'D','ACTION:DISPLAY','DESCRIPTION:Renovar '+d.name,'END:VALARM',
+   'END:VEVENT','END:VCALENDAR'];
+ var b=new Blob([L.join('\r\n')],{type:'text/calendar;charset=utf-8'});
+ var u=URL.createObjectURL(b), a=document.createElement('a');
+ a.href=u; a.download=d.name.replace(/[\\/:*?"<>|]/g,'-')+'.ics';
+ document.body.appendChild(a); a.click(); a.remove();
+ setTimeout(function(){try{URL.revokeObjectURL(u);}catch(e){}},30000);
+ toast('Recordatorio descargado (te avisa '+AVISO+' días antes)');
+}
+function filaAlerta(d,cls){
+ var n=diasPara(d);
+ return '<div class="arow '+cls+'">'+
+  '<div style="flex:1;min-width:200px"><div class="aname">'+esc(d.name)+'</div>'+
+  '<div class="adate">Vence el '+fecha(d.vig)+' \u00b7 '+textoDias(n)+'</div></div>'+
+  '<button class="mini alt" title="Agregar recordatorio a Google Calendar" onclick="calGoogle(\''+d.id+'\')">Calendario</button>'+
+  (ESADMIN?'<button class="mini" title="Subir la version nueva" onclick="subir(\''+d.id+'\')">Actualizar</button>':
+           '<button class="mini alt" onclick="ficha(\''+d.id+'\')">Ver ficha</button>')+
+  '</div>';
+}
+function renderAlertas(arr){
+ var box=document.getElementById('alerts');
+ var conF=arr.filter(function(d){return d.vig;});
+ conF.sort(function(a,b){return a.vig<b.vig?-1:(a.vig>b.vig?1:0);});
+ var urg=conF.filter(function(d){return diasPara(d)<=AVISO;});
+ var prox=conF.filter(function(d){return diasPara(d)>AVISO;}).slice(0,4);
+ var sinA=arr.filter(function(d){return !vact(d);});
+ var sinF=arr.filter(function(d){return !d.vig&&d.per!=='Permanente';});
+ if(!conF.length&&!sinA.length&&!sinF.length){box.innerHTML='';return;}
+ var h='';
+ if(urg.length){
+   var venc=urg.filter(function(d){return diasPara(d)<0;}).length;
+   h+='<div class="ahead" style="background:rgba(192,87,74,.09)"><span style="font-size:1.05rem">&#9888;&#65039;</span>'+
+      '<b>'+(venc?venc+' vencido'+(venc>1?'s':'')+(urg.length>venc?' y '+(urg.length-venc)+' por vencer':''):urg.length+' documento'+(urg.length>1?'s':'')+' por vencer')+'</b>'+
+      '<span style="flex:1"></span><a class="alink" onclick="filtrar(\'vence\')">Ver solo estos</a></div>';
+   h+=urg.map(function(d){return filaAlerta(d,diasPara(d)<0?'abad':'awarn');}).join('');
+ }
+ if(prox.length){
+   h+='<div class="ahead"><span style="font-size:1.02rem">&#128197;</span><b>Próximos vencimientos</b>'+
+      '<span style="flex:1"></span><span class="adate">aviso automático '+AVISO+' días antes</span></div>';
+   h+=prox.map(function(d){return filaAlerta(d,'aok');}).join('');
+ }
+ if(sinA.length||sinF.length){
+   var t=[];
+   if(sinA.length)t.push('<b style="font-family:Lato;font-size:.82rem">'+sinA.length+'</b> sin archivo cargado');
+   if(sinF.length)t.push('<b style="font-family:Lato;font-size:.82rem">'+sinF.length+'</b> sin fecha de vigencia');
+   h+='<div class="arow" style="background:#faf9f7"><div style="flex:1" class="adate">'+t.join(' &nbsp;&middot;&nbsp; ')+
+      ' &nbsp;&middot;&nbsp; '+esc((sinA.length?sinA:sinF).slice(0,4).map(function(d){return d.name;}).join(' \u00b7 '))+((sinA.length?sinA:sinF).length>4?' \u2026':'')+'</div></div>';
+ }
+ box.innerHTML='<div class="alerts">'+h+'</div>';
+}
 
 /* ============ Ficha de datos ============ */
 function metaArr(d){
@@ -452,7 +544,10 @@ function ficha(id){
  m.forEach(function(x){ if(x.v) rows.push([x.l,x.v]); });
  rows.push(['Archivo actual', v?((v.label?esc(v.label)+' \u00b7 ':'')+(v.kind==='link'?'enlace':esc(v.fname||''))+' \u00b7 '+fecha((v.at||'').slice(0,10))):'Sin archivo cargado']);
  document.getElementById('f_name').textContent=d.name;
- document.getElementById('f_body').innerHTML='<div style="margin-bottom:14px"><span class="badge '+e.k+'">'+e.t+'</span></div><table class="fichaT">'+
+ var cal=d.vig?('<button class="mini alt" onclick="calGoogle(\''+id+'\')">Google Calendar</button> '+
+                '<button class="mini alt" onclick="calIcs(\''+id+'\')">Descargar .ics</button>'):'';
+ document.getElementById('f_body').innerHTML='<div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge '+e.k+'">'+e.t+'</span>'+
+   (d.vig?'<span class="adate">'+textoDias(diasPara(d))+'</span>':'')+'<span style="flex:1"></span>'+cal+'</div><table class="fichaT">'+
    rows.map(function(r){return '<tr><td class="k">'+esc(r[0]).toUpperCase()+'</td><td>'+(r[0]==='Archivo actual'?r[1]:esc(r[1]))+'</td></tr>';}).join('')+'</table>'+
    (m.length?'':'<div class="note" style="margin-top:14px">Este documento todavia no tiene datos capturados'+(ESADMIN?'. Usa <b>Editar datos</b> para agregar póliza, año, placas, etc.':'.')+'</div>');
  var bv=document.getElementById('f_ver'); bv.className='btn ghost'+(v?'':' hide'); bv.onclick=function(){cerrar();ver(id);};
@@ -549,10 +644,7 @@ function render(){
       '<div class="fname">'+c.n+'</div><div class="fmeta">'+ds.length+' documentos</div><div class="fdots">'+dots+'</div></div>';
   }).join('');
 
-  var pend=arr.filter(function(d){var k=estado(d).k;return k==='warn'||k==='bad';});
-  var al=document.getElementById('alert');
-  if(pend.length){al.className='alert';document.getElementById('alerttxt').innerHTML='<b>'+pend.length+' documento'+(pend.length>1?'s':'')+' por actualizar</b> - '+esc(pend.slice(0,3).map(function(d){return d.name;}).join(', '))+(pend.length>3?'...':'');}
-  else al.className='alert hide';
+  renderAlertas(arr);
 
   var list=arr.filter(function(d){
     if(carpeta&&d.folder!==carpeta)return false;
@@ -627,7 +719,9 @@ function subir(id){EDIT=id;ARCH=null;MODO='file';modoUp('file');
  document.getElementById('u_url').value='';
  var M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];var n=new Date();
  document.getElementById('u_lbl').value=M[n.getMonth()].charAt(0).toUpperCase()+M[n.getMonth()].slice(1)+' '+n.getFullYear();
- document.getElementById('u_vig').value=DOCS[id].vig||'';
+ var _v=DOCS[id].vig||'';
+ if(!_v||diasPara(DOCS[id])<0) _v=sugerirVig(DOCS[id].per)||_v;
+ document.getElementById('u_vig').value=_v;
  abrir('up');}
 function modoUp(m){MODO=m;
  document.getElementById('tab-file').className='tab'+(m==='file'?' on':'');
